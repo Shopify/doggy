@@ -37,7 +37,10 @@ module Doggy
     end
 
     def raw
-      @raw ||= Doggy.client.dog.get_screenboard(@id)[1].sort.to_h
+      @raw ||= begin
+        result = Doggy.client.dog.get_screenboard(@id)
+        result && result[1] && result[1].sort.to_h
+      end
     end
 
     def raw_local

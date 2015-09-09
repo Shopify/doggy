@@ -50,7 +50,10 @@ module Doggy
     end
 
     def raw
-      @raw ||= Doggy.client.dog.get_dashboard(@id)[1]['dash'].sort.to_h
+      @raw ||= begin
+        result = Doggy.client.dog.get_dashboard(@id)
+        result && result[1]['dash'] && result[1]['dash'].sort.to_h
+      end
     end
 
     def raw_local

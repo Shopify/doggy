@@ -61,7 +61,8 @@ module Doggy
         alert.delete('state')
         alert.delete('overall_state')
         alert['options'].delete('silenced')
-        alert.sort.to_h
+        alert['options'] = alert['options'] && alert['options'].sort.to_h
+        alert && alert.sort.to_h
       end
     end
 
