@@ -49,8 +49,9 @@ module Doggy
     end
 
     def save
-      puts raw['errors'] and return if raw['errors'] # do now download an item if it doesn't exist
+      return if raw['errors'] # do now download an item if it doesn't exist
       return if raw['board_title'] =~ Doggy::DOG_SKIP_REGEX
+      return if raw.empty?
       File.write(path, Doggy.serializer.dump(raw))
     end
 

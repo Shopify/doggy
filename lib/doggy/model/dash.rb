@@ -52,7 +52,7 @@ module Doggy
     def raw
       @raw ||= begin
         result = Doggy.client.dog.get_dashboard(@id)
-        result && result[1]['dash'] && result[1]['dash'].sort.to_h
+        result && result[1]['dash'] && result[1]['dash'].sort.to_h || {}
       end
     end
 
@@ -62,8 +62,9 @@ module Doggy
     end
 
     def save
-      puts raw['errors'] and return if raw['errors'] # do now download an item if it doesn't exist
+      return if raw['errors'] # do now download an item if it doesn't exist
       return if raw['title'] =~ Doggy::DOG_SKIP_REGEX
+      return if raw.empty?
       File.write(path, Doggy.serializer.dump(raw))
     end
 

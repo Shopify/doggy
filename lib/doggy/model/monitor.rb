@@ -58,10 +58,10 @@ module Doggy
     def raw
       @raw ||= begin
         alert = Doggy.client.dog.get_monitor(@id)[1]
-        alert.delete('state')
-        alert.delete('overall_state')
-        alert['options'].delete('silenced')
-        alert['options'] = alert['options'] && alert['options'].sort.to_h
+        alert.delete('state')                                              # delete unnecessary state
+        alert.delete('overall_state')                                      # delete unnecessary state
+        alert['options'] && alert['options'].delete('silenced')            # delete unnecessary state
+        alert['options'] = alert['options'] && alert['options'].sort.to_h  # sort option keys; DataDog response is not ordered
         alert && alert.sort.to_h
       end
     end
@@ -72,8 +72,9 @@ module Doggy
     end
 
     def save
-      puts raw['errors'] and return if raw['errors'] # do now download an item if it doesn't exist
+      return if raw['errors'] # do now download an item if it doesn't exist
       return if raw['name'] =~ Doggy::DOG_SKIP_REGEX
+      return if raw.empty?
       File.write(path, Doggy.serializer.dump(raw))
     end
 
