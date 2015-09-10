@@ -16,6 +16,7 @@ require 'doggy/model/screen'
 module Doggy
   DOG_SKIP_REGEX = /\[dog\s+skip\]/i.freeze
   DEFAULT_SERIALIZER_CLASS = Doggy::Serializer::Json
+  MAX_TRIES = 5
 
   class DoggyError < StandardError
     def self.status_code(code)
@@ -91,6 +92,23 @@ module Doggy
       )
     rescue => e
       puts "Exception: #{e.message}"
+    end
+
+    def with_retry(times: MAX_TRIES, reraise: false)
+      tries = 0
+      while tries < times
+        begin
+          yield
+          break
+        rescue => e
+          error "Caught error in create_record! attempt #{tries}..."
+          error "#{e.class.name}: #{e.message}"
+          error "#{e.backtrace.join("\n")}"
+          tries += 1
+
+          raise e if tries >= times && reraise
+        end
+      end
     end
 
     def current_version

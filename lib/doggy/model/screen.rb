@@ -58,9 +58,13 @@ module Doggy
     def push
       return if @description =~ Doggy::DOG_SKIP_REGEX
       if @id
-        Doggy.client.dog.update_screenboard(@id, @description)
+        Doggy.with_retry do
+          Doggy.client.dog.update_screenboard(@id, @description)
+        end
       else
-        result = Doggy.client.dog.create_screenboard(@description)
+        Doggy.with_retry do
+          result = Doggy.client.dog.create_screenboard(@description)
+        end
         @id = result[1]['id']
         @description = result[1]
       end

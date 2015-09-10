@@ -91,22 +91,26 @@ module Doggy
       if @id
         return unless File.exists?(path)
 
-        Doggy.client.dog.update_monitor(@id, @query || raw_local['query'], {
-          name: @name || raw_local['name'],
-          timeout_h: @timeout_h || raw_local['timeout_h'],
-          message: @message || raw_local['message'],
-          notify_audit: @notify_audit || raw_local['notify_audit'],
-          notify_no_data: @notify_no_data || raw_local['notify_no_data'],
-          renotify_interval: @renotify_interval || raw_local['renotify_interval'],
-          escalation_message: @escalation_message || raw_local['escalation_message'],
-          no_data_timeframe: @no_data_timeframe || raw_local['no_data_timeframe'],
-          silenced_timeout_ts: @silenced_timeout_ts || raw_local['silenced_timeout_ts'],
-          options: {
-            silenced: mute_state_for(@id),
-          },
-        })
+        Doggy.with_retry do
+          Doggy.client.dog.update_monitor(@id, @query || raw_local['query'], {
+            name: @name || raw_local['name'],
+            timeout_h: @timeout_h || raw_local['timeout_h'],
+            message: @message || raw_local['message'],
+            notify_audit: @notify_audit || raw_local['notify_audit'],
+            notify_no_data: @notify_no_data || raw_local['notify_no_data'],
+            renotify_interval: @renotify_interval || raw_local['renotify_interval'],
+            escalation_message: @escalation_message || raw_local['escalation_message'],
+            no_data_timeframe: @no_data_timeframe || raw_local['no_data_timeframe'],
+            silenced_timeout_ts: @silenced_timeout_ts || raw_local['silenced_timeout_ts'],
+            options: {
+              silenced: mute_state_for(@id),
+            },
+          })
+        end
       else
-        result = Doggy.client.dog.monitor('metric alert', @query, name: @name)
+        Doggy.with_retry do
+          result = Doggy.client.dog.monitor('metric alert', @query, name: @name)
+        end
         @id = result[1]['id']
       end
     end

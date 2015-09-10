@@ -72,9 +72,13 @@ module Doggy
       return unless File.exists?(path)
       return if @title =~ Doggy::DOG_SKIP_REGEX
       if @id
-        Doggy.client.dog.update_dashboard(@id, @title, @description, @graphs, @template_variables)
+        Doggy.with_retry do
+          Doggy.client.dog.update_dashboard(@id, @title, @description, @graphs, @template_variables)
+        end
       else
-        dash = Doggy.client.dog.create_dashboard(@title, @description, @graphs)
+        Doggy.with_retry do
+          dash = Doggy.client.dog.create_dashboard(@title, @description, @graphs)
+        end
         # FIXME: Remove duplication
         @id = dash[1]['id']
         @graphs = dash[1]['graphs']
