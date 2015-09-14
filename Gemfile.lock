@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    doggy (0.1.0)
+    doggy (0.1.2)
       dogapi (~> 1.17)
       ejson (~> 1.0)
       thor (~> 0.19)
