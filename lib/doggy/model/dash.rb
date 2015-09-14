@@ -51,8 +51,8 @@ module Doggy
 
     def raw
       @raw ||= begin
-        result = Doggy.client.dog.get_dashboard(@id)
-        result && result[1]['dash'] && result[1]['dash'].sort.to_h || {}
+        status, result = Doggy.client.dog.get_dashboard(@id)
+        result && result['dash'] && result['dash'].sort.to_h || {}
       end
     end
 
@@ -62,9 +62,10 @@ module Doggy
     end
 
     def save
-      return if raw['errors'] # do now download an item if it doesn't exist
-      return if raw['title'] =~ Doggy::DOG_SKIP_REGEX
-      return if raw.empty?
+      return if raw.nil? || raw.empty?                # do not save if it's empty
+      return if raw['errors']                         # do not save if there are any errors
+      return if raw['title'] =~ Doggy::DOG_SKIP_REGEX # do not save if it had skip tag in title
+
       File.write(path, Doggy.serializer.dump(raw))
     end
 

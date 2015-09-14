@@ -38,8 +38,8 @@ module Doggy
 
     def raw
       @raw ||= begin
-        result = Doggy.client.dog.get_screenboard(@id)
-        result && result[1] && result[1].sort.to_h
+        status, result = Doggy.client.dog.get_screenboard(@id)
+        result && result.sort.to_h
       end
     end
 
