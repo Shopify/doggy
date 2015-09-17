@@ -13,7 +13,7 @@ module Doggy
         Doggy::Monitor.delete(ids)
         Doggy::Screen.delete(ids)
       rescue DoggyError
-        puts "Create failed."
+        puts "Delete failed."
         exit 1
       end
     end

@@ -1,23 +1,9 @@
 module Doggy
   class Screen
-    def initialize(**options)
-      @id = options[:id]
-      @description = options[:description] || raw_local
-    end
-
-    def self.download_all
-      ids = Doggy.client.dog.get_all_screenboards[1]['screenboards'].map { |d| d['id'] }
-      puts "Downloading #{ids.size} screenboards..."
-      Doggy.clean_dir(Doggy.screens_path)
-      download(ids)
-    rescue => e
-      puts "Exception: #{e.message}"
-    end
-
     def self.upload_all
-      ids = Dir[Doggy.screens_path.join('*')].map { |f| File.basename(f, '.*') }
-      puts "Uploading #{ids.size} screenboards from #{Doggy.screens_path}: #{ids.join(', ')}"
-      upload(ids)
+      objects = all_local_items.find_all { |(type, id), object| type == 'screen' }
+      puts "Uploading #{objects.size} screens"
+      upload(objects.map { |(type, id), object| id })
     rescue => e
       puts "Exception: #{e.message}"
     end
@@ -30,10 +16,20 @@ module Doggy
       Doggy::Worker.new(threads: Doggy::Worker::CONCURRENT_STREAMS) { |id| new(id: id).push }.call([*ids])
     end
 
-    def self.create(name)
-      item = new(description: { 'board_title' => name, 'widgets' => [] })
-      item.push
-      item.save
+    def self.edit(id)
+      system %{open "https://app.datadoghq.com/screen/#{id}"}
+      if SharedHelpers.agree("Are you done?")
+        puts 'Here is the output of your edit:'
+        puts Doggy::Serializer::Json.dump(new(id: id).raw)
+      else
+        puts "run, rabbit run / dig that hole, forget the sun / and when at last the work is done / don't sit down / it's time to dig another one"
+        edit(id)
+      end
+    end
+
+    def initialize(**options)
+      @id = options[:id]
+      @description = options[:description] || raw_local
     end
 
     def raw
@@ -58,11 +54,11 @@ module Doggy
     def push
       return if @description =~ Doggy::DOG_SKIP_REGEX
       if @id
-        Doggy.with_retry do
+        SharedHelpers.with_retry do
           Doggy.client.dog.update_screenboard(@id, @description)
         end
       else
-        Doggy.with_retry do
+        SharedHelpers.with_retry do
           result = Doggy.client.dog.create_screenboard(@description)
         end
         @id = result[1]['id']
@@ -72,7 +68,6 @@ module Doggy
 
     def delete
       Doggy.client.dog.delete_screenboard(@id)
-      File.unlink(path)
     end
 
     private

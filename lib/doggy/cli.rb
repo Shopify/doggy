@@ -23,7 +23,7 @@ module Doggy
     check_unknown_options!(:except => [:config, :exec])
     stop_on_unknown_option! :exec
 
-    desc "pull [SPACE SEPARATED IDs]", "Pulls objects from DataDog"
+    desc "pull OBJECT_ID OBJECT_ID OBJECT_ID", "Pulls objects from DataDog"
     long_desc <<-D
       Pull objects from DataDog. If pull is successful, Doggy exits with a status of 0.
       If not, the error is displayed and Doggy exits status 1.
@@ -33,7 +33,7 @@ module Doggy
       Pull.new(options.dup, ids).run
     end
 
-    desc "push [SPACE SEPARATED IDs]", "Pushes objects to DataDog"
+    desc "push [OBJECT_ID OBJECT_ID OBJECT_ID]", "Pushes objects to DataDog"
     long_desc <<-D
       Pushes objects to DataDog. If push is successful, Doggy exits with a status of 0.
       If not, the error is displayed and Doggy exits status 1.
@@ -43,17 +43,17 @@ module Doggy
       Push.new(options.dup, ids).run
     end
 
-    desc "create OBJECT_TYPE OBJECT_NAME", "Creates a new object on DataDog"
+    desc "edit OBJECT_ID", "Edit an existing object on DataDog"
     long_desc <<-D
-      Creates a new object on DataDog. If create is successful, Doggy exits with a status of 0.
-      If not, the error is displayed and Doggy exits status 1.
+      Opens default browser pointing to an object to edit it visually. After you finish, it will
+      display edit result.
     D
-    def create(kind, name)
-      require 'doggy/cli/create'
-      Create.new(options.dup, kind, name).run
+    def edit(id)
+      require 'doggy/cli/edit'
+      Edit.new(options.dup, id).run
     end
 
-    desc "delete SPACE SEPARATED IDs", "Deletes objects from DataDog"
+    desc "delete OBJECT_ID OBJECT_ID OBJECT_ID", "Deletes objects from DataDog"
     long_desc <<-D
       Deletes objects from DataDog. If delete is successful, Doggy exits with a status of 0.
       If not, the error is displayed and Doggy exits status 1.
@@ -63,7 +63,7 @@ module Doggy
       Delete.new(options.dup, ids).run
     end
 
-    desc "mute [SPACE SEPARATED IDs]", "Mutes monitor on DataDog"
+    desc "mute OBJECT_ID OBJECT_ID OBJECT_ID", "Mutes monitor on DataDog"
     long_desc <<-D
       Mutes monitor on DataDog. If mute is successful, Doggy exits with a status of 0.
       If not, the error is displayed and Doggy exits status 1.
@@ -73,7 +73,7 @@ module Doggy
       Mute.new(options.dup, ids).run
     end
 
-    desc "unmute [SPACE SEPARATED IDs]", "Unmutes monitor on DataDog"
+    desc "unmute OBJECT_ID OBJECT_ID OBJECT_ID", "Unmutes monitor on DataDog"
     long_desc <<-D
       Deletes objects from DataDog. If delete is successful, Doggy exits with a status of 0.
       If not, the error is displayed and Doggy exits status 1.
@@ -83,11 +83,20 @@ module Doggy
       Unmute.new(options.dup, ids).run
     end
 
-    desc "version", "Detects the most recent SHA deployed by ShipIt"
+    desc "sha", "Detects the most recent SHA deployed by ShipIt"
     long_desc <<-D
       Scans DataDog event stream for shipit events what contain most recently deployed version
       of DataDog properties.
       If not, the error is displayed and Doggy exits status 1.
+    D
+    def sha
+      require 'doggy/cli/sha'
+      Sha.new.run
+    end
+
+    desc "version", "Prints Doggy version"
+    long_desc <<-D
+      Prints Doggy version
     D
     def version
       require 'doggy/cli/version'
