@@ -54,8 +54,15 @@ module Doggy
       }
     end
 
-    def edit(id)
-      object = all_local_items.detect { |(type, object_id), object| object_id.to_s == id }
+    def edit(id_or_filename)
+      if id_or_filename =~ /json|yml|yaml/
+        item_from_filename = Doggy.load_item(Doggy.objects_path.join(id_or_filename))
+        id = item_from_filename.keys[0][1]
+      else
+        id = id_or_filename
+      end
+
+      object = (item_from_filename || all_local_items).detect { |(type, object_id), object| object_id.to_s == id.to_s }
       if object && object[0] && object[0][0] && type = object[0][0].sub(/^[a-z\d]*/) { $&.capitalize }
         Object.const_get("Doggy::#{type}").edit(id)
       end
