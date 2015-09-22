@@ -48,9 +48,6 @@ module Doggy
       @escalation_message = options[:escalation_message]
       @no_data_timeframe = options[:no_data_timeframe]
       @silenced_timeout_ts = options[:silenced_timeout_ts]
-
-      # Managed by doggy (TM)
-      @name = @name =~ MANAGED_BY_DOGGY_REGEX ? @name : @name + " 🐶"
     end
 
     def raw
@@ -92,6 +89,11 @@ module Doggy
 
     def push
       return if @name =~ Doggy::DOG_SKIP_REGEX
+      return unless Doggy.determine_type(raw_local) == 'monitor'
+
+      # Managed by doggy (TM)
+      @name = @name =~ MANAGED_BY_DOGGY_REGEX ? @name : @name + " 🐶"
+
       if @id
         return unless File.exists?(path)
 
@@ -126,7 +128,7 @@ module Doggy
     private
 
     def path
-      "#{Doggy.alerts_path}/#{@id}.json"
+      "#{Doggy.objects_path}/#{@id}.json"
     end
 
     def mute_state_for(id)

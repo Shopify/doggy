@@ -33,9 +33,6 @@ module Doggy
       @description = options[:description] || raw_local['description']
       @graphs = options[:graphs] || raw_local['graphs']
       @template_variables = options[:template_variables] || raw_local['template_variables']
-
-      # Managed by doggy (TM)
-      @title = @title =~ MANAGED_BY_DOGGY_REGEX ? @title : @title + " 🐶"
     end
 
     def raw
@@ -47,7 +44,10 @@ module Doggy
 
     def raw_local
       return {} unless File.exists?(path)
-      @raw_local ||= Doggy.serializer.load(File.read(path))
+      @raw_local ||= begin
+        object = Doggy.serializer.load(File.read(path))
+        object['dash'] ? object['dash'] : object
+      end
     end
 
     def save
@@ -61,6 +61,11 @@ module Doggy
     def push
       return unless File.exists?(path)
       return if @title =~ Doggy::DOG_SKIP_REGEX
+      return unless Doggy.determine_type(raw_local) == 'dash'
+
+      # Managed by doggy (TM)
+      @title = @title =~ MANAGED_BY_DOGGY_REGEX ? @title : @title + " 🐶"
+
       if @id
         SharedHelpers.with_retry do
           Doggy.client.dog.update_dashboard(@id, @title, @description, @graphs, @template_variables)

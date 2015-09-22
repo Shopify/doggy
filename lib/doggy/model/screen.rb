@@ -53,6 +53,7 @@ module Doggy
 
     def push
       return if @description =~ Doggy::DOG_SKIP_REGEX
+      return unless Doggy.determine_type(raw_local) == 'screen'
       if @id
         SharedHelpers.with_retry do
           Doggy.client.dog.update_screenboard(@id, @description)
@@ -73,7 +74,7 @@ module Doggy
     private
 
     def path
-      "#{Doggy.screens_path}/#{@id}.json"
+      "#{Doggy.objects_path}/#{@id}.json"
     end
   end
 end
