@@ -4,9 +4,15 @@ require 'json'
 require 'yaml'
 require 'dogapi'
 
+require 'doggy/friendly_errors'
+
 require 'doggy/version'
+require 'doggy/errors'
+require 'doggy/shared_helpers'
 require 'doggy/client'
 require 'doggy/worker'
+require 'doggy/definition'
+require 'doggy/dsl'
 require 'doggy/serializer/json'
 require 'doggy/serializer/yaml'
 require 'doggy/model/dash'
@@ -14,18 +20,9 @@ require 'doggy/model/monitor'
 require 'doggy/model/screen'
 
 module Doggy
-  DOG_SKIP_REGEX = /\[dog\s+skip\]/i.freeze
+  DOG_SKIP_REGEX = /😱|:scream:/i.freeze
+  MANAGED_BY_DOGGY_REGEX = /🐶|\:dog\:/i.freeze
   DEFAULT_SERIALIZER_CLASS = Doggy::Serializer::Json
-  MAX_TRIES = 5
-
-  class DoggyError < StandardError
-    def self.status_code(code)
-      define_method(:status_code) { code }
-    end
-  end
-
-  class InvalidOption < DoggyError; status_code(15); end
-  class InvalidItemType < DoggyError; status_code(10); end
 
   class << self
     # @option arguments [Constant] :serializer A specific serializer class to use, will be initialized by doggy and passed the object instance
@@ -37,50 +34,42 @@ module Doggy
       Doggy::Client.new
     end
 
-    # Absolute path of where alerts are stored on the filesystem.
-    #
-    # @return [Pathname]
-    def alerts_path
-      @alerts_path ||= Pathname.new('alerts').expand_path(Dir.pwd).expand_path.tap { |path| FileUtils.mkdir_p(path) }
-    end
-
-    # Absolute path of where dashes are stored on the filesystem.
-    #
-    # @return [Pathname]
-    def dashes_path
-      @dashes_path ||=  Pathname.new('dashes').expand_path(Dir.pwd).expand_path.tap { |path| FileUtils.mkdir_p(path) }
-    end
-
-    # Absolute path of where screens are stored on the filesystem.
-    #
-    # @return [Pathname]
-    def screens_path
-      @screens_path ||= Pathname.new('screens').expand_path(Dir.pwd).expand_path.tap { |path| FileUtils.mkdir_p(path) }
-    end
-
-    # Cleans up directory
-    def clean_dir(dir)
-      Dir.foreach(dir) { |f| fn = File.join(dir, f); File.delete(fn) if f != '.' && f != '..'}
-    end
-
-    def all_local_items
-      @all_local_items ||= Dir[Doggy.dashes_path.join('**/*'), Doggy.alerts_path.join('**/*'), Doggy.screens_path.join('**/*')].inject({}) { |memo, file| memo.merge load_item(f) }
+    def objects_path
+      @objects_path ||= Pathname.new('objects').expand_path(Dir.pwd).expand_path.tap { |path| FileUtils.mkdir_p(path) }
     end
 
     def load_item(f)
-      filetype = File.extname(f)
-
-      item = case filetype
+      item = case File.extname(f)
       when '.yaml', '.yml' then Doggy::Serializer::Yaml.load(File.read(f))
       when '.json'         then Doggy::Serializer::Json.load(File.read(f))
+      when '.rb'           then Doggy::Dsl.evaluate(f).obj
       else                      raise InvalidItemType
       end
 
-      { [ determine_type(item), item['id'] ] => item }
+      # Hackery to support legacy dash format
+      {
+        [
+          determine_type(item), item['id'] || item['dash']['id']
+        ] => item['dash'] ? item['dash'] : item
+      }
+    end
+
+    def edit(id_or_filename)
+      if id_or_filename =~ /json|yml|yaml/
+        item_from_filename = Doggy.load_item(Doggy.objects_path.join(id_or_filename))
+        id = item_from_filename.keys[0][1]
+      else
+        id = id_or_filename
+      end
+
+      object = (item_from_filename || all_local_items).detect { |(type, object_id), object| object_id.to_s == id.to_s }
+      if object && object[0] && object[0][0] && type = object[0][0].sub(/^[a-z\d]*/) { $&.capitalize }
+        Object.const_get("Doggy::#{type}").edit(id)
+      end
     end
 
     def determine_type(item)
-      return 'dash'    if item['graphs']
+      return 'dash'    if item['graphs'] || item['dash']
       return 'monitor' if item['message']
       return 'screen'  if item['board_title']
       raise InvalidItemType
@@ -94,24 +83,7 @@ module Doggy
       puts "Exception: #{e.message}"
     end
 
-    def with_retry(times: MAX_TRIES, reraise: false)
-      tries = 0
-      while tries < times
-        begin
-          yield
-          break
-        rescue => e
-          error "Caught error in create_record! attempt #{tries}..."
-          error "#{e.class.name}: #{e.message}"
-          error "#{e.backtrace.join("\n")}"
-          tries += 1
-
-          raise e if tries >= times && reraise
-        end
-      end
-    end
-
-    def current_version
+    def current_sha
       now = Time.now.to_i
       month_ago = now - 3600 * 24 * 30
       events = Doggy.client.dog.stream(month_ago, now, tags: %w(audit shipit))[1]['events']
@@ -121,15 +93,10 @@ module Doggy
       puts "Exception: #{e.message}"
     end
 
-    def all_remote_dashes
-      @all_remote_dashes ||= Doggy.client.dog.get_dashboards[1]['dashes'].inject({}) do |memo, dash|
-        memo.merge([ 'dash', dash['id'] ] => dash)
-      end
-    end
-
-    def all_remote_monitors
-      @all_remote_monitors ||= Doggy.client.dog.get_all_monitors[1].inject({}) do |memo, monitor|
-        memo.merge([ 'monitor', monitor['id'] ] => monitor)
+    def all_local_items
+      @all_local_items ||= Dir[Doggy.objects_path.join('**/*')].inject({}) do |memo, file|
+        next if File.directory?(file)
+        memo.merge!(load_item(file))
       end
     end
   end

@@ -18,13 +18,32 @@ Or install it yourself as:
 
     $ gem install doggy
 
+## Authentication
+
+To authenticate, you need to set API and APP keys for your DataDog account.
+
+#### Environment variables
+
+Export `DATADOG_API_KEY` and `DATADOG_APP_KEY` environment variables and `doggy` will catch them up automatically.
+
+#### ejson
+
+Set up `ejson` by putting `secrets.ejson` in your root object store.
+
+#### json (plaintext)
+
+If you're feeling adventurous, just put plaintext `secrets.json` in your root object store like this:
+
+```json
+{
+  "datadog_api_key": "key1",
+  "datadog_app_key": "key2"
+}
+```
+
 ## Usage
 
-```
-# Export your DataDog credentials or use ejson
-$ export DATADOG_API_KEY=api_key_goes_here
-$ export DATADOG_APP_KEY=app_key_goes_here
-
+```bash
 # Download selected items from DataDog
 $ doggy pull ID ID
 
@@ -37,14 +56,41 @@ $ doggy push ID ID ID
 # Upload all items to DataDog
 $ doggy push
 
-# Create a new dashboard
-$ doggy create dash 'My New Dash'
+# Edit a dashboard in WYSIWYG
+$ doggy edit ID
 
 # Delete selected items from both DataDog and local storage
 $ doggy delete ID ID ID
+
+# Mute monitor(s) forever
+$ doggy mute ID ID ID
+
+# Unmute monitor(s)
+$ doggy unmute ID ID ID
 ```
 
-Note that we currently don't support global upload due to high risk of overwriting things. We'll turn this feature on after initial testing period.
+## Example object definition
+
+#### Ruby DSL
+
+A DataDog object will be populated from `obj()` hash as shown below.
+
+```ruby
+created_at = Time.parse('2015-01-01 14:00:01').to_i * 1000
+
+query = "sum(last_1m):sum:Engine.current_thrust.status{status:error}.as_count() < 50"
+
+obj({
+  created_at: created_at,
+  id: 100500,
+  message: "Houston, we have a problem @pagerduty-Houston",
+  name: "Engine thrust",
+  query: query,
+  type: "query alert"
+})
+```
+
+For more examples, check the `examples` directory.
 
 ## Development
 

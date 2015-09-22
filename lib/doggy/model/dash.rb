@@ -1,26 +1,9 @@
 module Doggy
   class Dash
-    def initialize(**options)
-      @id = options[:id]
-      @title = options[:title] || raw_local['title']
-      @description = options[:description] || raw_local['description']
-      @graphs = options[:graphs] || raw_local['graphs']
-      @template_variables = options[:template_variables] || raw_local['template_variables']
-    end
-
-    def self.download_all
-      ids = Doggy.client.dog.get_dashboards[1]['dashes'].map { |d| d['id'] }
-      puts "Downloading #{ids.size} dashboards..."
-      Doggy.clean_dir(Doggy.dashes_path)
-      download(ids)
-    rescue => e
-      puts "Exception: #{e.message}"
-    end
-
     def self.upload_all
-      ids = Dir[Doggy.dashes_path.join('*')].map { |f| File.basename(f, '.*') }
-      puts "Uploading #{ids.size} dashboards from #{Doggy.dashes_path}: #{ids.join(', ')}"
-      upload(ids)
+      objects = all_local_items.find_all { |(type, id), object| type == 'dash' }
+      puts "Uploading #{objects.size} dashboards"
+      upload(objects.map { |(type, id), object| id })
     rescue => e
       puts "Exception: #{e.message}"
     end
@@ -33,20 +16,23 @@ module Doggy
       Doggy::Worker.new(threads: Doggy::Worker::CONCURRENT_STREAMS) { |id| new(id: id).push }.call([*ids])
     end
 
-    def self.create(name)
-      # This graphs placeholder is required as you cannot create an empty dashboard via API
-      dash = new(title: name, description: '', graphs: [{
-        "definition" => {
-          "events" => [],
-          "requests" => [
-            {"q" => "avg:system.mem.free{*}"}
-          ],
-          "viz" => "timeseries"
-        },
-        "title" => "Average Memory Free"
-      }])
-      dash.push
-      dash.save
+    def self.edit(id)
+      system %{open "https://app.datadoghq.com/dash/#{id}"}
+      if SharedHelpers.agree("Are you done?")
+        puts 'Here is the output of your edit:'
+        puts Doggy::Serializer::Json.dump(new(id: id).raw)
+      else
+        puts "run, rabbit run / dig that hole, forget the sun / and when at last the work is done / don't sit down / it's time to dig another one"
+        edit(id)
+      end
+    end
+
+    def initialize(**options)
+      @id = options[:id]
+      @title = options[:title] || raw_local['title']
+      @description = options[:description] || raw_local['description']
+      @graphs = options[:graphs] || raw_local['graphs']
+      @template_variables = options[:template_variables] || raw_local['template_variables']
     end
 
     def raw
@@ -58,7 +44,10 @@ module Doggy
 
     def raw_local
       return {} unless File.exists?(path)
-      @raw_local ||= Doggy.serializer.load(File.read(path))
+      @raw_local ||= begin
+        object = Doggy.serializer.load(File.read(path))
+        object['dash'] ? object['dash'] : object
+      end
     end
 
     def save
@@ -72,12 +61,17 @@ module Doggy
     def push
       return unless File.exists?(path)
       return if @title =~ Doggy::DOG_SKIP_REGEX
+      return unless Doggy.determine_type(raw_local) == 'dash'
+
+      # Managed by doggy (TM)
+      @title = @title =~ MANAGED_BY_DOGGY_REGEX ? @title : @title + " 🐶"
+
       if @id
-        Doggy.with_retry do
+        SharedHelpers.with_retry do
           Doggy.client.dog.update_dashboard(@id, @title, @description, @graphs, @template_variables)
         end
       else
-        Doggy.with_retry do
+        SharedHelpers.with_retry do
           dash = Doggy.client.dog.create_dashboard(@title, @description, @graphs)
         end
         # FIXME: Remove duplication
@@ -88,13 +82,12 @@ module Doggy
 
     def delete
       Doggy.client.dog.delete_dashboard(@id)
-      File.unlink(path)
     end
 
     private
 
     def path
-      "#{Doggy.dashes_path}/#{@id}.json"
+      "#{Doggy.objects_path}/#{@id}.json"
     end
   end
 end

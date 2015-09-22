@@ -1,33 +1,9 @@
 module Doggy
   class Monitor
-    def initialize(**options)
-      @id = options[:id]
-      @query = options[:query]
-      @silenced = options[:silenced]
-      @name = options[:name]
-      @timeout_h = options[:timeout_h]
-      @message = options[:message]
-      @notify_audit = options[:notify_audit]
-      @notify_no_data = options[:notify_no_data]
-      @renotify_interval = options[:renotify_interval]
-      @escalation_message = options[:escalation_message]
-      @no_data_timeframe = options[:no_data_timeframe]
-      @silenced_timeout_ts = options[:silenced_timeout_ts]
-    end
-
-    def self.download_all
-      ids = Doggy.client.dog.get_all_alerts[1]['alerts'].map { |d| d['id'] }
-      puts "Downloading #{ids.size} alerts..."
-      Doggy.clean_dir(Doggy.alerts_path)
-      download(ids)
-    rescue => e
-      puts "Exception: #{e.message}"
-    end
-
     def self.upload_all
-      ids = Dir[Doggy.alerts_path.join('*')].map { |f| File.basename(f, '.*') }
-      puts "Uploading #{ids.size} alerts from #{Doggy.alerts_path}: #{ids.join(', ')}"
-      upload(ids)
+      objects = all_local_items.find_all { |(type, id), object| type == 'monitor' }
+      puts "Uploading #{objects.size} monitors"
+      upload(objects.map { |(type, id), object| id })
     rescue => e
       puts "Exception: #{e.message}"
     end
@@ -48,11 +24,30 @@ module Doggy
       Doggy::Worker.new(threads: Doggy::Worker::CONCURRENT_STREAMS) { |id| new(id: id).unmute }.call([*ids])
     end
 
-    def self.create(name)
-      # Adding a placeholder query as it's a mandatory parameter
-      item = new(name: name, query: 'avg(last_1m):avg:system.load.1{*} > 100')
-      item.push
-      item.save
+    def self.edit(id)
+      system %{open "https://app.datadoghq.com/monitors##{id}"}
+      if SharedHelpers.agree("Are you done?")
+        puts 'Here is the output of your edit:'
+        puts Doggy::Serializer::Json.dump(new(id: id).raw)
+      else
+        puts "run, rabbit run / dig that hole, forget the sun / and when at last the work is done / don't sit down / it's time to dig another one"
+        edit(id)
+      end
+    end
+
+    def initialize(**options)
+      @id = options[:id]
+      @query = options[:query]
+      @silenced = options[:silenced]
+      @name = options[:name]
+      @timeout_h = options[:timeout_h]
+      @message = options[:message]
+      @notify_audit = options[:notify_audit]
+      @notify_no_data = options[:notify_no_data]
+      @renotify_interval = options[:renotify_interval]
+      @escalation_message = options[:escalation_message]
+      @no_data_timeframe = options[:no_data_timeframe]
+      @silenced_timeout_ts = options[:silenced_timeout_ts]
     end
 
     def raw
@@ -94,10 +89,15 @@ module Doggy
 
     def push
       return if @name =~ Doggy::DOG_SKIP_REGEX
+      return unless Doggy.determine_type(raw_local) == 'monitor'
+
+      # Managed by doggy (TM)
+      @name = @name =~ MANAGED_BY_DOGGY_REGEX ? @name : @name + " 🐶"
+
       if @id
         return unless File.exists?(path)
 
-        Doggy.with_retry do
+        SharedHelpers.with_retry do
           Doggy.client.dog.update_monitor(@id, @query || raw_local['query'], {
             name: @name || raw_local['name'],
             timeout_h: @timeout_h || raw_local['timeout_h'],
@@ -114,7 +114,7 @@ module Doggy
           })
         end
       else
-        Doggy.with_retry do
+        SharedHelpers.with_retry do
           result = Doggy.client.dog.monitor('metric alert', @query, name: @name)
         end
         @id = result[1]['id']
@@ -123,13 +123,12 @@ module Doggy
 
     def delete
       Doggy.client.dog.delete_alert(@id)
-      File.unlink(path)
     end
 
     private
 
     def path
-      "#{Doggy.alerts_path}/#{@id}.json"
+      "#{Doggy.objects_path}/#{@id}.json"
     end
 
     def mute_state_for(id)
