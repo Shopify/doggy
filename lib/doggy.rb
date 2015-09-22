@@ -35,7 +35,7 @@ module Doggy
     end
 
     def objects_path
-      @objects_path ||= Pathname.new('objects').expand_path(Dir.pwd).expand_path.tap { |path| FileUtils.mkdir_p(path) }
+      @objects_path ||= Pathname.new('objects').expand_path(SharedHelpers.find_root).expand_path.tap { |path| FileUtils.mkdir_p(path) }
     end
 
     def load_item(f)
