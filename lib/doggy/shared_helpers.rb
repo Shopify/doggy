@@ -33,6 +33,10 @@ module Doggy
       line == "Y"
     end
 
+    def self.error(msg)
+      puts "[ERROR] #{ msg }"
+    end
+
     def self.find_root
       File.dirname(find_file("Gemfile"))
     end

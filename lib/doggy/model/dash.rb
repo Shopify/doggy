@@ -1,7 +1,7 @@
 module Doggy
   class Dash
     def self.upload_all
-      objects = all_local_items.find_all { |(type, id), object| type == 'dash' }
+      objects = Doggy.all_local_items.find_all { |(type, id), object| type == 'dash' }
       puts "Uploading #{objects.size} dashboards"
       upload(objects.map { |(type, id), object| id })
     rescue => e

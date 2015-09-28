@@ -1,7 +1,7 @@
 module Doggy
   class Monitor
     def self.upload_all
-      objects = all_local_items.find_all { |(type, id), object| type == 'monitor' }
+      objects = Doggy.all_local_items.find_all { |(type, id), object| type == 'monitor' }
       puts "Uploading #{objects.size} monitors"
       upload(objects.map { |(type, id), object| id })
     rescue => e
@@ -88,6 +88,8 @@ module Doggy
     end
 
     def push
+      @name ||= raw_local['name']
+
       return if @name =~ Doggy::DOG_SKIP_REGEX
       return unless Doggy.determine_type(raw_local) == 'monitor'
 
@@ -132,7 +134,7 @@ module Doggy
     end
 
     def mute_state_for(id)
-      if remote_state = Doggy.all_remote_monitors.detect { |key, value| key == [ 'monitor', id.to_i ] }
+      if remote_state = Doggy.all_local_items.detect { |key, value| key == [ 'monitor', id.to_i ] }
         remote_state[1]['options']['silenced'] if remote_state[1]['options']
       end
     end

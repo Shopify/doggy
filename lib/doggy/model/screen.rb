@@ -1,7 +1,7 @@
 module Doggy
   class Screen
     def self.upload_all
-      objects = all_local_items.find_all { |(type, id), object| type == 'screen' }
+      objects = Doggy.all_local_items.find_all { |(type, id), object| type == 'screen' }
       puts "Uploading #{objects.size} screens"
       upload(objects.map { |(type, id), object| id })
     rescue => e
