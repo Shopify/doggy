@@ -61,7 +61,7 @@ module Doggy
                          # TODO: Add serializer support here
                          files   = Dir[Doggy.object_root.join("**/*.json")]
                          resources = Parallel.map(files) do |file|
-                           raw = File.read(file)
+                           raw = File.read(file, encoding: 'utf-8')
 
                            begin
                              attributes = JSON.parse(raw)
