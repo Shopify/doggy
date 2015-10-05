@@ -69,29 +69,6 @@ $ doggy mute ID ID ID
 $ doggy unmute ID ID ID
 ```
 
-## Example object definition
-
-#### Ruby DSL
-
-A DataDog object will be populated from `obj()` hash as shown below.
-
-```ruby
-created_at = Time.parse('2015-01-01 14:00:01').to_i * 1000
-
-query = "sum(last_1m):sum:Engine.current_thrust.status{status:error}.as_count() < 50"
-
-obj({
-  created_at: created_at,
-  id: 100500,
-  message: "Houston, we have a problem @pagerduty-Houston",
-  name: "Engine thrust",
-  query: query,
-  type: "query alert"
-})
-```
-
-For more examples, check the `examples` directory.
-
 ## Development
 
 After checking out the repo, run `bundle install` to install dependencies.
