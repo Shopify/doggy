@@ -20,7 +20,7 @@ module Doggy
           # Pull remote silenced state. If we don't send this value, Datadog
           # assumes that we want to unmute the monitor.
           remote_monitor = Monitor.find(monitor.id)
-          self.silenced  = remote_monitor.options.silenced
+          self.silenced  = remote_monitor.options.silenced if remote_monitor.options
           super
         end
       end
