@@ -45,7 +45,7 @@ module Doggy
       def initialize(attributes = nil)
         super(attributes)
 
-        options.monitor = self
+        options.monitor = self if options
       end
 
       def managed?
