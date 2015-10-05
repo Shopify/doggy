@@ -24,6 +24,7 @@ module Doggy
 
       def ensure_managed_emoji!
         return unless managed?
+        return if self.title =~ /\xF0\x9F\x90\xB6/
         self.title += " \xF0\x9F\x90\xB6"
       end
 
