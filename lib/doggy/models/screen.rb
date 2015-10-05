@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 module Doggy
   module Models
     class Screen < Doggy::Model
