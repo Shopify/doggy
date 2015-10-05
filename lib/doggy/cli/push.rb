@@ -1,28 +1,26 @@
 module Doggy
   class CLI::Push
-    attr_reader :options, :ids
-
-    def initialize(options, ids)
+    def initialize(options)
       @options = options
-      @ids = ids
     end
 
     def run
-      begin
-        if ids.any?
-          Doggy::Dash.upload(ids)
-          Doggy::Monitor.upload(ids)
-          Doggy::Screen.upload(ids)
-        else
-          Doggy::Dash.upload_all
-          Doggy::Monitor.upload_all
-          Doggy::Screen.upload_all
-          Doggy.emit_shipit_deployment if ENV['SHIPIT']
-        end
-      rescue DoggyError
-        puts "Push failed."
-        exit 1
-      end
+      push_resources('dashboards', Models::Dashboard) if should_push?('dashboards')
+      push_resources('monitors',   Models::Monitor)   if should_push?('monitors')
+      push_resources('screens',    Models::Screen)    if should_push?('screens')
+    end
+
+  private
+
+    def should_push?(resource)
+      @options.empty? || @options[resource]
+    end
+
+    def push_resources(name, klass)
+      Doggy.ui.say "Pushing #{ name }"
+      local_resources = klass.all_local
+      local_resources.each(&:save)
     end
   end
 end
+

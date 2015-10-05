@@ -1,12 +1,4 @@
 #!/usr/bin/env ruby
 
-# Exit cleanly from an early interrupt
-Signal.trap('INT') { exit 1 }
-
-require 'bundler/setup'
-require 'doggy/friendly_errors'
-
-Doggy.with_friendly_errors do
-  require 'doggy/cli'
-  Doggy::CLI.start(ARGV, :debug => true)
-end
+require "doggy"
+Doggy::CLI.start(ARGV)

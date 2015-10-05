@@ -1,29 +1,44 @@
 PATH
   remote: .
   specs:
-    doggy (0.2.0)
-      dogapi (~> 1.17)
-      ejson (~> 1.0)
-      thor (~> 0.19)
-      thread (~> 0.2)
+    doggy (2.0.0)
+      json (~> 1.8.3)
+      parallel (~> 1.6.1)
+      thor (~> 0.19.1)
+      virtus (~> 1.0.5)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    dogapi (1.20.0)
-      multi_json
-    ejson (1.0.0)
-    multi_json (1.11.2)
+    axiom-types (0.1.1)
+      descendants_tracker (~> 0.0.4)
+      ice_nine (~> 0.11.0)
+      thread_safe (~> 0.3, >= 0.3.1)
+    coercible (1.0.0)
+      descendants_tracker (~> 0.0.1)
+    descendants_tracker (0.0.4)
+      thread_safe (~> 0.3, >= 0.3.1)
+    equalizer (0.0.11)
+    ice_nine (0.11.1)
+    json (1.8.3)
+    minitest (5.8.0)
+    parallel (1.6.1)
     rake (10.4.2)
     thor (0.19.1)
-    thread (0.2.2)
+    thread_safe (0.3.5)
+    virtus (1.0.5)
+      axiom-types (~> 0.1)
+      coercible (~> 1.0)
+      descendants_tracker (~> 0.0, >= 0.0.3)
+      equalizer (~> 0.0, >= 0.0.9)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
-  bundler (~> 1.9)
+  bundler (~> 1.10)
   doggy!
+  minitest
   rake (~> 10.0)
 
 BUNDLED WITH

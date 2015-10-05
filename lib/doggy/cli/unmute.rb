@@ -1,19 +1,15 @@
 module Doggy
   class CLI::Unmute
-    attr_reader :options, :ids
-
     def initialize(options, ids)
       @options = options
-      @ids = ids
+      @ids     = ids
     end
 
     def run
-      begin
-        Doggy::Monitor.unmute(ids)
-      rescue DoggyError
-        puts "Unmute failed."
-        exit 1
-      end
+      monitors = @ids.map { |id| Doggy::Models::Monitor.find(id) }
+      monitors.each(&:unmute)
     end
   end
 end
+
+
