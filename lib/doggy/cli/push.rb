@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 module Doggy
   class CLI::Push
     def initialize(options)

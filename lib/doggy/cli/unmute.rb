@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 module Doggy
   class CLI::Unmute
     def initialize(options, ids)
