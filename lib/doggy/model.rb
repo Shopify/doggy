@@ -125,6 +125,8 @@ module Doggy
       end
 
       def emit_shipit_deployment
+        return unless ENV['SHIPIT']
+
         request(:post, 'https://app.datadoghq.com/api/v1/events', {
           title: "ShipIt Deployment by #{ENV['USER']}",
           text: ENV['REVISION'],

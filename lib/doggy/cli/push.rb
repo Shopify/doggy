@@ -10,6 +10,8 @@ module Doggy
       push_resources('dashboards', Models::Dashboard) if should_push?('dashboards')
       push_resources('monitors',   Models::Monitor)   if should_push?('monitors')
       push_resources('screens',    Models::Screen)    if should_push?('screens')
+
+      Doggy.emit_shipit_deployment
     end
 
   private
