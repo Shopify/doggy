@@ -60,7 +60,7 @@ module Doggy
         @all_local ||= begin
                          # TODO: Add serializer support here
                          if only_changed
-                           files   = Doggy.modified(Doggy::Model.current_sha).map { |i| Doggy.object_root.join(i).to_s }
+                           files   = Doggy.modified(Doggy::Model.current_sha).map { |i| Doggy.object_root.parent.join(i).to_s }
                          else
                            files   = Dir[Doggy.object_root.join("**/*.json")]
                          end
