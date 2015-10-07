@@ -4,6 +4,7 @@ PATH
     doggy (2.0.6)
       json (~> 1.8.3)
       parallel (~> 1.6.1)
+      rugged (~> 0.23.2)
       thor (~> 0.19.1)
       virtus (~> 1.0.5)
 
@@ -24,6 +25,7 @@ GEM
     minitest (5.8.1)
     parallel (1.6.1)
     rake (10.4.2)
+    rugged (0.23.2)
     thor (0.19.1)
     thread_safe (0.3.5)
     virtus (1.0.5)

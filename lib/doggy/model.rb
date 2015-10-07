@@ -56,10 +56,14 @@ module Doggy
         Parallel.map(ids) { |id| find(id) }
       end
 
-      def all_local
+      def all_local(only_changed: false)
         @all_local ||= begin
                          # TODO: Add serializer support here
-                         files   = Dir[Doggy.object_root.join("**/*.json")]
+                         if only_changed
+                           files   = Doggy.modified(Doggy::Model.current_sha).map { |i| Doggy.object_root.join(i).to_s }
+                         else
+                           files   = Dir[Doggy.object_root.join("**/*.json")]
+                         end
                          resources = Parallel.map(files) do |file|
                            raw = File.read(file, encoding: 'utf-8')
 
@@ -90,7 +94,12 @@ module Doggy
 
       def request(method, url, body = nil)
         uri = URI(url)
-        uri.query = "api_key=#{ Doggy.api_key }&application_key=#{ Doggy.application_key }"
+
+        if uri.query
+          uri.query = "api_key=#{ Doggy.api_key }&application_key=#{ Doggy.application_key }" + '&' + uri.query
+        else
+          uri.query = "api_key=#{ Doggy.api_key }&application_key=#{ Doggy.application_key }"
+        end
 
         http = Net::HTTP.new(uri.host, uri.port)
         http.use_ssl = (uri.scheme == 'https')
@@ -106,6 +115,24 @@ module Doggy
 
         response = http.request(request)
         JSON.parse(response.body)
+      end
+
+      def current_sha
+        now = Time.now.to_i
+        month_ago = now - 3600 * 24 * 30
+        result = request(:get, "https://app.datadoghq.com/api/v1/events?start=#{ month_ago }&end=#{ now }&tags=audit,shipit")
+        result['events'][0]['text'] # most recetly deployed SHA
+      end
+
+      def emit_shipit_deployment
+        request(:post, 'https://app.datadoghq.com/api/v1/events', {
+          title: "ShipIt Deployment by #{ENV['USER']}",
+          text: ENV['REVISION'],
+          tags: %w(audit shipit),
+          date_happened: Time.now.to_i,
+          priority: 'normal',
+          source_type_name: 'shipit'
+        }.to_json)
       end
 
       protected

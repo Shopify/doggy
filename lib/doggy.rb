@@ -2,6 +2,7 @@
 
 require "pathname"
 require "net/http"
+require "rugged"
 
 require "doggy/cli"
 require "doggy/cli/edit"
@@ -54,6 +55,20 @@ module Doggy
     ENV['DATADOG_APP_KEY'] || secrets['datadog_app_key']
   end
 
+  def modified(compare_to, all = false)
+    @modified ||= begin
+      mods = Set.new
+      paths = repo.diff(compare_to, 'HEAD').each_delta.map { |delta| delta.new_file[:path] }
+      paths.each do |path|
+        parts = path.split('/')
+        next unless parts[0] =~ /objects/
+        next unless File.exist?(path)
+        mods << path
+      end
+      mods
+    end
+  end
+
 protected
 
   def secrets
@@ -61,5 +76,9 @@ protected
                    raw = File.read(repo_root.join('secrets.json'))
                    JSON.parse(raw)
                  end
+  end
+
+  def repo
+    @repo ||= Rugged::Repository.new(Doggy.object_root.parent.to_s)
   end
 end # Doggy
