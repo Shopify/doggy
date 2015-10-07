@@ -11,7 +11,7 @@ module Doggy
       push_resources('monitors',   Models::Monitor)   if should_push?('monitors')
       push_resources('screens',    Models::Screen)    if should_push?('screens')
 
-      Doggy.emit_shipit_deployment
+      Doggy::Model.emit_shipit_deployment
     end
 
   private
