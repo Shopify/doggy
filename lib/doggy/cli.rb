@@ -15,6 +15,7 @@ module Doggy
     method_option "dashboards", type: :boolean, desc: 'Pull dashboards'
     method_option "monitors",   type: :boolean, desc: 'Pull monitors'
     method_option "screens",    type: :boolean, desc: 'Pull screens'
+    method_option "all",        type: :boolean, desc: 'Pull everything', aliases: '-a'
 
     def pull(*ids)
       CLI::Pull.new(ids: ids, options: options.dup).run
@@ -33,7 +34,6 @@ module Doggy
     def push
       CLI::Push.new(options.dup).run
     end
-
 
     desc "mute OBJECT_ID OBJECT_ID OBJECT_ID", "Mutes monitor on DataDog"
     long_desc <<-D
