@@ -16,8 +16,8 @@ module Doggy
     method_option "monitors",   type: :boolean, desc: 'Pull monitors'
     method_option "screens",    type: :boolean, desc: 'Pull screens'
 
-    def pull
-      CLI::Pull.new(options.dup).run
+    def pull(*ids)
+      CLI::Pull.new(ids: ids, options: options.dup).run
     end
 
     desc "push", "Pushes objects to Datadog"
