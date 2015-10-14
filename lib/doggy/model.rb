@@ -105,16 +105,17 @@ module Doggy
         http.use_ssl = (uri.scheme == 'https')
 
         request = case method
-                  when :get  then Net::HTTP::Get.new(uri.request_uri)
-                  when :post then Net::HTTP::Post.new(uri.request_uri)
-                  when :put  then Net::HTTP::Put.new(uri.request_uri)
+                  when :get    then Net::HTTP::Get.new(uri.request_uri)
+                  when :post   then Net::HTTP::Post.new(uri.request_uri)
+                  when :put    then Net::HTTP::Put.new(uri.request_uri)
+                  when :delete then Net::HTTP::Delete.new(uri.request_uri)
                   end
 
         request.content_type = 'application/json'
         request.body = body if body
 
         response = http.request(request)
-        JSON.parse(response.body)
+        response.body ? JSON.parse(response.body) : nil
       end
 
       def current_sha
@@ -170,6 +171,10 @@ module Doggy
       else
         request(:put, resource_url(id), body)
       end
+    end
+
+    def destroy
+      request(:delete, resource_url(id))
     end
 
     protected

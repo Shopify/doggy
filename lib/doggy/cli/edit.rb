@@ -12,14 +12,20 @@ module Doggy
       return Doggy.ui.error("Could not find resource with #{ @param }") unless resource
 
       Dir.chdir(File.dirname(resource.path)) do
-        system("open '#{ resource.human_edit_url }'")
+        forked_resource = fork(resource)
+        system("open '#{ forked_resource.human_edit_url }'")
         while !Doggy.ui.yes?('Are you done editing?') do
           Doggy.ui.say "run, rabbit run / dig that hole, forget the sun / and when at last the work is done / don't sit down / it's time to dig another one"
         end
 
-        new_resource      = resource.class.find(resource.id)
-        new_resource.path = resource.path
+        new_resource             = resource.class.find(forked_resource.id)
+        new_resource.id          = resource.id
+        new_resource.title       = resource.title
+        new_resource.description = resource.description
+        new_resource.path        = resource.path
         new_resource.save_local
+
+        forked_resource.destroy
       end
     end
 
@@ -37,6 +43,17 @@ module Doggy
         full_path = File.expand_path(@param, Dir.pwd)
         return resources.find { |res| res.path == full_path }
       end
+    end
+
+    def fork(resource)
+      salt = (0...12).map { (65 + rand(26)).chr.downcase }.join
+
+      forked_resource = resource.dup
+      forked_resource.id = nil
+      forked_resource.title = "[#{ salt }] " + forked_resource.title
+      forked_resource.description = "[fork of #{ resource.id }] " + forked_resource.title
+      forked_resource.save
+      forked_resource
     end
   end
 end
