@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["v@gor.io", "me@andremedeiros.info"]
 
   spec.summary       = %q{Syncs DataDog dashboards, alerts, screenboards, and monitors.}
-  spec.description   = %q{Syncs DataDog dashboards, alerts, screenboards, and monitors.}
+  spec.description   = %q{Syncs and manages DataDog dashboards, alerts, screenboards, and monitors.}
   spec.homepage      = "http://github.com/bai/doggy"
   spec.license       = "MIT"
 
