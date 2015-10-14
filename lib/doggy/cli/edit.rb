@@ -12,20 +12,29 @@ module Doggy
       return Doggy.ui.error("Could not find resource with #{ @param }") unless resource
 
       Dir.chdir(File.dirname(resource.path)) do
-        forked_resource = fork(resource)
-        system("open '#{ forked_resource.human_edit_url }'")
-        while !Doggy.ui.yes?('Are you done editing?') do
-          Doggy.ui.say "run, rabbit run / dig that hole, forget the sun / and when at last the work is done / don't sit down / it's time to dig another one"
+        if resource.class.to_s.downcase =~ /dashboard/
+          forked_resource = fork(resource)
+          system("open '#{ forked_resource.human_edit_url }'")
+
+          wait_for_edit
+
+          new_resource             = Doggy::Models::Dashboard.find(forked_resource.id)
+          new_resource.id          = resource.id
+          new_resource.title       = resource.title
+          new_resource.description = resource.description
+          new_resource.path        = resource.path
+          new_resource.save_local
+
+          forked_resource.destroy
+        else
+          system("open '#{ resource.human_edit_url }'")
+
+          wait_for_edit
+
+          new_resource      = resource.class.find(resource.id)
+          new_resource.path = resource.path
+          new_resource.save_local
         end
-
-        new_resource             = resource.class.find(forked_resource.id)
-        new_resource.id          = resource.id
-        new_resource.title       = resource.title
-        new_resource.description = resource.description
-        new_resource.path        = resource.path
-        new_resource.save_local
-
-        forked_resource.destroy
       end
     end
 
@@ -40,8 +49,14 @@ module Doggy
         id = @param.to_i
         return resources.find { |res| res.id == id }
       else
-        full_path = File.expand_path(@param, Dir.pwd)
+        full_path = File.expand_path(@param, Doggy.object_root)
         return resources.find { |res| res.path == full_path }
+      end
+    end
+
+    def wait_for_edit
+      while !Doggy.ui.yes?('Are you done editing?') do
+        Doggy.ui.say "run, rabbit run / dig that hole, forget the sun / and when at last the work is done / don't sit down / it's time to dig another one"
       end
     end
 
