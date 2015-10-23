@@ -138,12 +138,22 @@ module Doggy
         }.to_json)
       end
 
+      def sort_by_key(hash, &block)
+        hash.keys.sort(&block).reduce({}) do |seed, key|
+          seed[key] = hash[key]
+          if seed[key].is_a?(Hash)
+            seed[key] = Doggy::Model.sort_by_key(seed[key], &block)
+          end
+          seed
+        end
+      end
+
       protected
 
       def resource_url(id = nil)
         raise NotImplementedError, "#resource_url has to be implemented."
       end
-    end
+    end # class << self
 
     def initialize(attributes = nil)
       root_key = self.class.root
@@ -158,6 +168,10 @@ module Doggy
     def save_local
       @path ||= Doggy.object_root.join("#{ id }.json")
       File.open(@path, 'w') { |f| f.write(JSON.pretty_generate(to_h)) }
+    end
+
+    def to_h
+      Doggy::Model.sort_by_key(super)
     end
 
     def save
