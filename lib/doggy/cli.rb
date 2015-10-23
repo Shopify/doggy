@@ -18,7 +18,7 @@ module Doggy
     method_option "all",        type: :boolean, desc: 'Pull everything', aliases: '-a'
 
     def pull(*ids)
-      CLI::Pull.new(ids: ids, options: options.dup).run
+      CLI::Pull.new(options.dup, ids).run
     end
 
     desc "push", "Pushes objects to Datadog"

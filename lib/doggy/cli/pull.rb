@@ -2,9 +2,9 @@
 
 module Doggy
   class CLI::Pull
-    def initialize(ids:, options:)
-      @ids = ids
-      @options = options
+    def initialize(options, ids)
+      @options                = options
+      @ids                    = ids
       @updated_by_last_action = false
     end
 
