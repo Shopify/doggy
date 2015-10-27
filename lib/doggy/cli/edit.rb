@@ -48,6 +48,14 @@ module Doggy
       if @param =~ /^[0-9]+$/ then
         id = @param.to_i
         return resources.find { |res| res.id == id }
+      elsif @param =~ /^http/ then
+        id = case @param
+          when /com\/dash/     then Integer(@param[/dash\/(\d+)/i, 1])
+          when /com\/screen/   then Integer(@param[/screen\/(\d+)/i, 1])
+          when /com\/monitors/ then Integer(@param[/monitors#(\d+)/i, 1])
+          else raise StandardError.new('Unknown resource type, cannot edit.')
+          end
+        return resources.find { |res| res.id == id }
       else
         full_path = File.expand_path(@param, Doggy.object_root)
         return resources.find { |res| res.path == full_path }
