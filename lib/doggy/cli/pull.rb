@@ -29,7 +29,7 @@ module Doggy
 
     def pull_by_id(id)
       local_resource = @local_resources.find { |l| l.id == id }
-      if !local_resource then
+      if !local_resource
         remote_resource = [Models::Dashboard, Models::Monitor, Models::Screen].map do |klass|
           klass.find(id)
         end.compact.first
