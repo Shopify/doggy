@@ -57,19 +57,28 @@ module Doggy
 
   def modified(compare_to, all = false)
     @modified ||= begin
-      mods = Set.new
-      paths = repo.diff(compare_to, 'HEAD').each_delta.map { |delta| delta.new_file[:path] }
-      paths.each do |path|
-        parts = path.split('/')
-        next unless parts[0] =~ /objects/
-        next unless File.exist?(path)
-        mods << path
-      end
-      mods
-    end
+                    mods = Set.new
+                    paths = repo.diff(compare_to, 'HEAD').each_delta.map { |delta| delta.new_file[:path] }
+                    paths.each do |path|
+                      parts = path.split('/')
+                      next unless parts[0] =~ /objects/
+                      next unless File.exist?(path)
+                      mods << path
+                    end
+                    mods
+                  end
   end
 
-protected
+  def resolve_path(path)
+    path     = Pathname.new(path)
+    curr_dir = Pathname.new(Dir.pwd)
+    resolved = object_root.relative_path_from(curr_dir)
+
+    (curr_dir.expand_path(resolved + path) + path).to_s
+  end
+
+
+  protected
 
   def secrets
     @secrets ||= begin

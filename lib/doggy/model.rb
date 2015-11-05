@@ -56,6 +56,12 @@ module Doggy
         Parallel.map(ids) { |id| find(id) }
       end
 
+      def all_local_resources
+        @resources ||= [ Models::Dashboard,
+                         Models::Monitor,
+                         Models::Screen ].flat_map(&:all_local)
+      end
+
       def all_local(only_changed: false)
         @all_local ||= begin
                          # TODO: Add serializer support here
