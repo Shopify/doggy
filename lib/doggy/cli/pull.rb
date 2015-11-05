@@ -52,7 +52,7 @@ module Doggy
     end
 
     def pull_resources(name, klass)
-      Doggy.ui.say "Pulling the whole world..."
+      Doggy.ui.say "Pulling #{ name }..."
       local_resources  = klass.all_local
       remote_resources = klass.all
 
