@@ -25,14 +25,6 @@ module Doggy
         @root || nil
       end
 
-      def resolve_path(path)
-        path     = Pathname.new(path)
-        curr_dir = Pathname.new(Dir.pwd)
-        resolved = object_root.relative_path_from(curr_dir)
-
-        (curr_dir.expand_path(resolved + path) + path).to_s
-      end
-
       def find(id)
         attributes = request(:get, resource_url(id))
         resource   = new(attributes)
@@ -65,11 +57,9 @@ module Doggy
       end
 
       def all_local_resources
-        @resources ||= begin
-                        [ Models::Dashboard,
-                          Models::Monitor,
-                          Models::Screen ].flat_map(&:all_local)
-                       end
+        @resources ||= [ Models::Dashboard,
+                         Models::Monitor,
+                         Models::Screen ].flat_map(&:all_local)
       end
 
       def all_local(only_changed: false)
