@@ -182,6 +182,7 @@ module Doggy
 
     def save
       ensure_managed_emoji!
+      ensure_renotify_interval_valid
 
       body = JSON.dump(to_h)
       if !id then

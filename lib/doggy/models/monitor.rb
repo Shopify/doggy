@@ -13,6 +13,7 @@ module Doggy
         attribute :no_data_timeframe,  Integer
         attribute :timeout_h,          Integer
         attribute :escalation_message, String
+        attribute :renotify_interval,  Integer
 
         def to_h
           return super unless monitor.id && monitor.loading_source == :local
@@ -56,6 +57,15 @@ module Doggy
         return unless managed?
         return if self.name =~ /\xF0\x9F\x90\xB6/
         self.name += " \xF0\x9F\x90\xB6"
+      end
+
+      def ensure_renotify_interval_valid
+        return unless options && options.renotify_interval && options.renotify_interval.to_i > 0
+
+        allowed_renotify_intervals = [10,20,30,40,50,60,90,120,180,240,300,360,720,1440] # minutes
+        best_matching_interval = allowed_renotify_intervals.min_by { |x| (x.to_f - options.renotify_interval).abs }
+        puts "WARN: Monitor #{self.id} uses invalid escalation interval (renotify_interval) #{options.renotify_interval}, using #{best_matching_interval} instead"
+        options.renotify_interval = best_matching_interval
       end
 
       def mute
