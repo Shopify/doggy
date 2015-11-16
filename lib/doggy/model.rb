@@ -180,9 +180,13 @@ module Doggy
       Doggy::Model.sort_by_key(super)
     end
 
+    def validate
+      # NotImplemented
+    end
+
     def save
       ensure_managed_emoji!
-      ensure_renotify_interval_valid
+      validate
 
       body = JSON.dump(to_h)
       if !id then

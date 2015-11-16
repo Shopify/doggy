@@ -59,13 +59,8 @@ module Doggy
         self.name += " \xF0\x9F\x90\xB6"
       end
 
-      def ensure_renotify_interval_valid
-        return unless options && options.renotify_interval && options.renotify_interval.to_i > 0
-
-        allowed_renotify_intervals = [10,20,30,40,50,60,90,120,180,240,300,360,720,1440] # minutes
-        best_matching_interval = allowed_renotify_intervals.min_by { |x| (x.to_f - options.renotify_interval).abs }
-        puts "WARN: Monitor #{self.id} uses invalid escalation interval (renotify_interval) #{options.renotify_interval}, using #{best_matching_interval} instead"
-        options.renotify_interval = best_matching_interval
+      def validate
+        ensure_renotify_interval_valid
       end
 
       def mute
@@ -88,6 +83,17 @@ module Doggy
 
       def to_h
         super.merge(options: options.to_h)
+      end
+
+      private
+
+      def ensure_renotify_interval_valid
+        return unless options && options.renotify_interval && options.renotify_interval.to_i > 0
+
+        allowed_renotify_intervals = [10,20,30,40,50,60,90,120,180,240,300,360,720,1440] # minutes
+        best_matching_interval = allowed_renotify_intervals.min_by { |x| (x.to_f - options.renotify_interval).abs }
+        puts "WARN: Monitor #{self.id} uses invalid escalation interval (renotify_interval) #{options.renotify_interval}, using #{best_matching_interval} instead"
+        options.renotify_interval = best_matching_interval
       end
     end # Monitor
   end # Models
