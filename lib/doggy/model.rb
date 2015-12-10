@@ -27,6 +27,7 @@ module Doggy
 
       def find(id)
         attributes = request(:get, resource_url(id))
+        return if attributes['errors']
         resource   = new(attributes)
 
         resource.loading_source = :remote
