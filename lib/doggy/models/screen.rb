@@ -3,14 +3,15 @@
 module Doggy
   module Models
     class Screen < Doggy::Model
-      attribute :id,          Integer
-      attribute :board_title, String
+      attribute :id,                 Integer
+      attribute :board_title,        String
 
-      attribute :board_bgtype, String
-      attribute :templated,    Boolean
-      attribute :widgets,      Array[Hash]
-      attribute :height,       String
-      attribute :width,        String
+      attribute :board_bgtype,       String
+      attribute :templated,          Boolean
+      attribute :template_variables, Array[Hash]
+      attribute :widgets,            Array[Hash]
+      attribute :height,             String
+      attribute :width,              String
 
       def self.resource_url(id = nil)
         "https://app.datadoghq.com/api/v1/screen".tap do |base_url|
