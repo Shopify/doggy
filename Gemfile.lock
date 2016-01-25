@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    doggy (2.0.20)
+    doggy (2.0.21)
       json (~> 1.8.3)
       parallel (~> 1.6.1)
       rugged (~> 0.23.2)
@@ -44,4 +44,4 @@ DEPENDENCIES
   rake (~> 10.0)
 
 BUNDLED WITH
-   1.10.6
+   1.11.2
