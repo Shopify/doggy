@@ -44,7 +44,7 @@ module Doggy
       resources  = Doggy::Models::Dashboard.all_local
       resources += Doggy::Models::Monitor.all_local
       resources += Doggy::Models::Screen.all_local
-
+# raise 1.inspect
       if @param =~ /^[0-9]+$/ then
         id = @param.to_i
         return resources.find { |res| res.id == id }
@@ -57,7 +57,8 @@ module Doggy
           end
         return resources.find { |res| res.id == id }
       else
-        full_path = File.expand_path(@param, Doggy.object_root)
+        full_path = File.expand_path(@param.gsub('objects/', ''), Doggy.object_root)
+        # raise full_path.inspect
         return resources.find { |res| res.path == full_path }
       end
     end
