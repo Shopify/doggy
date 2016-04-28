@@ -9,9 +9,9 @@ module Doggy
 
     def run
       if @ids_or_names.empty?
-        pull_resources('dashboards', Models::Dashboard)
-        pull_resources('monitors',   Models::Monitor)
-        pull_resources('screens',    Models::Screen)
+        pull_resources('dashboards', Models::Dashboard) if !@options.any? || @options['dashboards']
+        pull_resources('monitors',   Models::Monitor)   if !@options.any? || @options['monitors']
+        pull_resources('screens',    Models::Screen)    if !@options.any? || @options['screens']
         return
       end
 

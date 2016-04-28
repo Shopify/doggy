@@ -15,7 +15,6 @@ module Doggy
     method_option "dashboards", type: :boolean, desc: 'Pull dashboards'
     method_option "monitors",   type: :boolean, desc: 'Pull monitors'
     method_option "screens",    type: :boolean, desc: 'Pull screens'
-    method_option "all",        type: :boolean, desc: 'Pull everything', aliases: '-a'
 
     def pull(*ids)
       CLI::Pull.new(options.dup, ids).run
