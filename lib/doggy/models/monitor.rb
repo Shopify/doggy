@@ -8,6 +8,7 @@ module Doggy
         attr_accessor :monitor
 
         attribute :silenced,           Hash
+        attribute :thresholds,         Hash
         attribute :notify_audit,       Boolean
         attribute :notify_no_data,     Boolean
         attribute :no_data_timeframe,  Integer
