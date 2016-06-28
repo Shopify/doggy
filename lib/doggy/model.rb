@@ -173,7 +173,13 @@ module Doggy
     end
 
     def save_local
-      @path ||= Doggy.object_root.join("#{ id }.json")
+      prefix = case self.class.name
+        when 'Doggy::Models::Dashboard' then 'dash'
+        when 'Doggy::Models::Monitor' then 'monitor'
+        when 'Doggy::Models::Screen' then 'screen'
+        end
+
+      @path ||= Doggy.object_root.join("#{prefix}-#{id}.json")
       File.open(@path, 'w') { |f| f.write(JSON.pretty_generate(to_h)) }
     end
 

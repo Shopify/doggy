@@ -28,17 +28,32 @@ module Doggy
   private
 
     def pull_by_id(id)
-      local_resource = @local_resources.find { |l| l.id == id }
-      if !local_resource
-        remote_resource = [Models::Dashboard, Models::Monitor, Models::Screen].map do |klass|
-          klass.find(id)
-        end.compact.first
+      local_resources = @local_resources.find_all { |l| l.id == id }
 
-        remote_resource.save_local
+      remote_resources = [Models::Dashboard, Models::Monitor, Models::Screen].map do |klass|
+        klass.find(id)
+      end.compact
+
+      if local_resources.size != remote_resources.size
+        normalized_remote_resources = remote_resources.map { |remote_resource| [ remote_resource.class.name, remote_resource.id ] }
+        normalized_local_resources = local_resources.map { |local_resource| [ local_resource.class.name, local_resource.id ] }
+        normalized_resource_diff = Hash[normalized_remote_resources - normalized_local_resources]
+
+        # Here we traverse `remote_resources` to find remote resource with matching class name and id.
+        # We cannot subtract `local_resources` from `remote_resources` because those are different kind of objects.
+        remote_resources_to_be_saved = normalized_resource_diff.map do |klass, id|
+          remote_resources.find do |rr|
+            rr.class.name == klass && rr.id == id
+          end
+        end
+
+        remote_resources_to_be_saved.each(&:save_local)
       else
-        remote_resource = local_resource.class.find(local_resource.id)
-        remote_resource.path = local_resource.path
-        remote_resource.save_local
+        local_resources.each do |local_resource|
+          remote_resource = local_resource.class.find(local_resource.id)
+          remote_resource.path = local_resource.path
+          remote_resource.save_local
+        end
       end
     end
 
