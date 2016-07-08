@@ -26,6 +26,32 @@ module Doggy
           new_resource.save_local
 
           forked_resource.destroy
+        elsif resource.class.to_s.downcase =~ /screen/
+          forked_resource = fork(resource)
+          system("open '#{ forked_resource.human_edit_url }'")
+
+          wait_for_edit
+
+          new_resource             = Doggy::Models::Screen.find(forked_resource.id)
+          new_resource.id          = resource.id
+          new_resource.board_title = resource.board_title
+          new_resource.path        = resource.path
+          new_resource.save_local
+
+          forked_resource.destroy
+        elsif resource.class.to_s.downcase =~ /monitor/
+          forked_resource = fork(resource)
+          system("open '#{ forked_resource.human_edit_url }'")
+
+          wait_for_edit
+
+          new_resource             = Doggy::Models::Monitor.find(forked_resource.id)
+          new_resource.id          = resource.id
+          new_resource.name        = resource.name
+          new_resource.path        = resource.path
+          new_resource.save_local
+
+          forked_resource.destroy
         else
           system("open '#{ resource.human_edit_url }'")
 
@@ -72,8 +98,16 @@ module Doggy
 
       forked_resource = resource.dup
       forked_resource.id = nil
-      forked_resource.title = "[#{ salt }] " + forked_resource.title
-      forked_resource.description = "[fork of #{ resource.id }] " + forked_resource.title
+      if resource.class.to_s.downcase =~ /dashboard/
+        forked_resource.title = "[#{ salt }] " + forked_resource.title
+        forked_resource.description = "[fork of #{ resource.id }] " + forked_resource.title
+      elsif resource.class.to_s.downcase =~ /screen/
+        forked_resource.board_title = "[#{ salt }] " + forked_resource.board_title
+      elsif resource.class.to_s.downcase =~ /monitor/
+        forked_resource.name = "[#{ salt }] " + forked_resource.name
+      else
+        raise StandardError.new('Unknown resource type, cannot edit.')
+      end
       forked_resource.save
       forked_resource
     end
