@@ -209,6 +209,10 @@ module Doggy
       request(:delete, resource_url(id))
     end
 
+    def destroy_local
+      File.delete(@path)
+    end
+
     protected
 
     def resource_url(id = nil)
