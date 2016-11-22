@@ -26,9 +26,10 @@ module Doggy
       the marker in their title will get it as a result of a push.
     D
 
-    method_option "dashboards", type: :boolean, desc: 'Pull dashboards'
-    method_option "monitors",   type: :boolean, desc: 'Pull monitors'
-    method_option "screens",    type: :boolean, desc: 'Pull screens'
+    method_option "dashboards",   type: :boolean, desc: 'Pull dashboards'
+    method_option "monitors",     type: :boolean, desc: 'Pull monitors'
+    method_option "screens",      type: :boolean, desc: 'Pull screens'
+    method_option "all_objects",  type: :boolean, desc: 'Push all objects even if they are not changed'
 
     def push
       CLI::Push.new(options.dup).run

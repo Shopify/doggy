@@ -22,7 +22,7 @@ module Doggy
 
     def push_resources(name, klass)
       Doggy.ui.say "Pushing #{ name }"
-      local_resources = klass.all_local(only_changed: true)
+      local_resources = klass.all_local(only_changed: !@options['all_objects'])
       local_resources.each(&:save)
     end
   end
