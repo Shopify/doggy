@@ -73,6 +73,11 @@ module Doggy
 
       klass.assign_paths(remote_resources, local_resources)
       remote_resources.each(&:save_local)
+
+      ids = local_resources.map(&:id) - remote_resources.map(&:id)
+      local_resources.each do |local_resource|
+        local_resource.destroy_local if ids.include?(local_resource.id)
+      end
     end
   end
 end
