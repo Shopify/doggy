@@ -2,27 +2,33 @@
 
 module Doggy
   class CLI::Push
+    WARNING_MESSAGE = "You are about to force push all the objects. "\
+      "This will override changes in Datadog if they have not been sycned to the dog repository. "\
+      "Do you want to proceed?(Y/N)"
+
     def initialize(options)
       @options = options
     end
 
     def run
-      push_resources('dashboards', Models::Dashboard) if should_push?('dashboards')
-      push_resources('monitors',   Models::Monitor)   if should_push?('monitors')
-      push_resources('screens',    Models::Screen)    if should_push?('screens')
+      if @options['all_objects'] && !Doggy.ui.yes?(WARNING_MESSAGE)
+        Doggy.ui.say "Operation cancelled"
+        return
+      end
+
+      push_resources('dashboards', Models::Dashboard) if @options['dashboards']
+      push_resources('monitors',   Models::Monitor)   if @options['monitors']
+      push_resources('screens',    Models::Screen)    if @options['screens']
 
       Doggy::Model.emit_shipit_deployment
     end
 
   private
 
-    def should_push?(resource)
-      @options.empty? || @options[resource]
-    end
-
     def push_resources(name, klass)
       Doggy.ui.say "Pushing #{ name }"
-      local_resources = klass.all_local(only_changed: true)
+      local_resources = klass.all_local(only_changed: !@options['all_objects'])
+      Doggy.ui.say "#{ local_resources.size } objects to push"
       local_resources.each(&:save)
     end
   end

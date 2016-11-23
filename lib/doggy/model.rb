@@ -200,13 +200,19 @@ module Doggy
         attributes = request(:post, resource_url, body)
         self.id    = self.class.new(attributes).id
         save_local
+        Doggy.ui.say "Created #{ @path }"
       else
         request(:put, resource_url(id), body)
+        Doggy.ui.say "Updated #{ @path }"
       end
     end
 
     def destroy
       request(:delete, resource_url(id))
+    end
+
+    def destroy_local
+      File.delete(@path)
     end
 
     protected
