@@ -10,6 +10,12 @@ class Doggy::ModelTest < Minitest::Test
     self.root = :dash
   end
 
+  def test_sort_by_key
+    h = { b: [ {d: 1, a: 2}, {x: 1, p: 3, y: 5} ], a: 3 }
+    expected = { a: 3, b: [ {a: 2, d: 1}, {p: 3, x: 1, y: 5} ] }
+    assert_equal Doggy::Model.sort_by_key(h).to_s, expected.to_s
+  end
+
   def test_mass_assignment
     instance = DummyModel.new(id: 1, title: 'Some test')
 
