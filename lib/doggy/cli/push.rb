@@ -28,7 +28,7 @@ module Doggy
     def push_resources(name, klass)
       Doggy.ui.say "Pushing #{ name }"
       local_resources = klass.all_local(only_changed: !@options['all_objects'])
-      local_resources.each { |resource| resource.read_only = true }
+      local_resources.each(&:ensure_read_only!)
       Doggy.ui.say "#{ local_resources.size } objects to push"
       local_resources.each(&:save)
     end

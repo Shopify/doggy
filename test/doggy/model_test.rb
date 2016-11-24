@@ -10,6 +10,13 @@ class Doggy::ModelTest < Minitest::Test
     self.root = :dash
   end
 
+  def test_save_local_ensures_read_only
+    model = Doggy::Models::Monitor.new(id: 1, title: 'Some test', name: 'Monitor name', 'read_only' => false)
+    File.expects(:open).with(Doggy.object_root.join('monitor-1.json'), 'w')
+    model.save_local
+    assert model.read_only
+  end
+
   def test_create
     model = Doggy::Models::Dashboard.new({'dash' => {'title' => 'Pipeline', 'read_only' => true}})
     stub_request(:post, 'https://app.datadoghq.com/api/v1/dash?api_key=api_key_123&application_key=app_key_345').

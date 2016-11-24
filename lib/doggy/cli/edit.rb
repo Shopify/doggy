@@ -98,6 +98,7 @@ module Doggy
 
       forked_resource = resource.dup
       forked_resource.id = nil
+      forked_resource.read_only = false
       if resource.class.to_s.downcase =~ /dashboard/
         forked_resource.title = "[#{ salt }] " + forked_resource.title
         forked_resource.description = "[fork of #{ resource.id }] " + forked_resource.title

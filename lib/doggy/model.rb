@@ -176,7 +176,12 @@ module Doggy
       super(attributes)
     end
 
+    def ensure_read_only!
+      self.read_only = true
+    end
+
     def save_local
+      ensure_read_only!
       prefix = case self.class.name
         when 'Doggy::Models::Dashboard' then 'dash'
         when 'Doggy::Models::Monitor' then 'monitor'
