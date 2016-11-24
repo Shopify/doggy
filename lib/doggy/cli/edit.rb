@@ -9,6 +9,7 @@ module Doggy
 
     def run
       resource = resource_by_param
+      resource.read_only = false
       return Doggy.ui.error("Could not find resource with #{ @param }") unless resource
 
       Dir.chdir(File.dirname(resource.path)) do
@@ -98,7 +99,6 @@ module Doggy
 
       forked_resource = resource.dup
       forked_resource.id = nil
-      forked_resource.read_only = false
       if resource.class.to_s.downcase =~ /dashboard/
         forked_resource.title = "[#{ salt }] " + forked_resource.title
         forked_resource.description = "[fork of #{ resource.id }] " + forked_resource.title
