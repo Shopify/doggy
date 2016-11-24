@@ -150,6 +150,8 @@ module Doggy
           seed[key] = hash[key]
           if seed[key].is_a?(Hash)
             seed[key] = Doggy::Model.sort_by_key(seed[key], &block)
+          elsif seed[key].is_a?(Array)
+            seed[key].each_with_index { |e, i| seed[key][i] = sort_by_key(e, &block) if e.is_a?(Hash) }
           end
           seed
         end
