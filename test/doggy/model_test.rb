@@ -10,6 +10,24 @@ class Doggy::ModelTest < Minitest::Test
     self.root = :dash
   end
 
+  def test_create
+    model = Doggy::Models::Dashboard.new({'dash' => {'title' => 'Pipeline'}})
+    stub_request(:post, 'https://app.datadoghq.com/api/v1/dash?api_key=api_key_123&application_key=app_key_345').
+        with(:body => "{\"description\":null,\"graphs\":[],\"id\":null,\"read_only\":true,\"template_variables\":[],\"title\":\"Pipeline 🐶\"}").
+                      to_return(:status => 200, :body => "{\"id\":1}")
+    File.expects(:open).with(Doggy.object_root.join('dash-1.json'), 'w')
+    model.save
+  end
+
+  def test_update
+    model = Doggy::Models::Monitor.new(id: 1, title: 'Some test', name: 'Monitor name')
+    stub_request(:put, "https://app.datadoghq.com/api/v1/monitor/1?api_key=api_key_123&application_key=app_key_345").
+      with(:body => "{\"id\":1,\"message\":null,\"multi\":null,\"name\":\"Monitor name 🐶\",\"options\":{},"\
+           "\"org_id\":null,\"query\":null,\"read_only\":true,\"tags\":[],\"type\":null}").
+      to_return(:status => 200)
+    model.save
+  end
+
   def test_sort_by_key
     h = { b: [ {d: 1, a: 2}, {x: 1, p: 3, y: 5} ], a: 3 }
     expected = { a: 3, b: [ {a: 2, d: 1}, {p: 3, x: 1, y: 5} ] }
