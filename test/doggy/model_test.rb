@@ -11,7 +11,7 @@ class Doggy::ModelTest < Minitest::Test
   end
 
   def test_create
-    model = Doggy::Models::Dashboard.new({'dash' => {'title' => 'Pipeline'}})
+    model = Doggy::Models::Dashboard.new({'dash' => {'title' => 'Pipeline', 'read_only' => true}})
     stub_request(:post, 'https://app.datadoghq.com/api/v1/dash?api_key=api_key_123&application_key=app_key_345').
         with(:body => "{\"description\":null,\"graphs\":[],\"id\":null,\"read_only\":true,\"template_variables\":[],\"title\":\"Pipeline 🐶\"}").
                       to_return(:status => 200, :body => "{\"id\":1}")
@@ -20,7 +20,7 @@ class Doggy::ModelTest < Minitest::Test
   end
 
   def test_update
-    model = Doggy::Models::Monitor.new(id: 1, title: 'Some test', name: 'Monitor name')
+    model = Doggy::Models::Monitor.new(id: 1, title: 'Some test', name: 'Monitor name', 'read_only' => true)
     stub_request(:put, "https://app.datadoghq.com/api/v1/monitor/1?api_key=api_key_123&application_key=app_key_345").
       with(:body => "{\"id\":1,\"message\":null,\"multi\":null,\"name\":\"Monitor name 🐶\",\"options\":{},"\
            "\"org_id\":null,\"query\":null,\"read_only\":true,\"tags\":[],\"type\":null}").

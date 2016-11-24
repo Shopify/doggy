@@ -195,13 +195,8 @@ module Doggy
       # NotImplemented
     end
 
-    def ensure_read_only!
-      self.read_only = true
-    end
-
     def save
       ensure_managed_emoji!
-      ensure_read_only!
       validate
 
       body = JSON.dump(to_h)
