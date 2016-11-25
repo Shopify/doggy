@@ -11,6 +11,11 @@ module Doggy
 
       attribute :graphs,             Array[Hash]
       attribute :template_variables, Array[Hash]
+      attribute :read_only,          Boolean
+
+      def ensure_read_only!
+        self.read_only = true
+      end
 
       def self.resource_url(id = nil)
         "https://app.datadoghq.com/api/v1/dash".tap do |base_url|

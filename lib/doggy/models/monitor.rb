@@ -15,6 +15,7 @@ module Doggy
         attribute :timeout_h,          Integer
         attribute :escalation_message, String
         attribute :renotify_interval,  Integer
+        attribute :locked,             Boolean
 
         def to_h
           return super unless monitor.id && monitor.loading_source == :local
@@ -37,6 +38,14 @@ module Doggy
       attribute :tags,    Array[String]
       attribute :type,    String
       attribute :multi,   Boolean
+
+      def ensure_read_only!
+        if options
+          self.options.locked = true
+        else
+          self.options = Options.new(locked: true)
+        end
+      end
 
       def self.resource_url(id = nil)
         "https://app.datadoghq.com/api/v1/monitor".tap do |base_url|

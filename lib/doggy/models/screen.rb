@@ -12,6 +12,11 @@ module Doggy
       attribute :widgets,            Array[Hash]
       attribute :height,             String
       attribute :width,              String
+      attribute :read_only,          Boolean
+
+      def ensure_read_only!
+        self.read_only = true
+      end
 
       def self.resource_url(id = nil)
         "https://app.datadoghq.com/api/v1/screen".tap do |base_url|

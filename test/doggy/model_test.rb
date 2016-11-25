@@ -11,10 +11,15 @@ class Doggy::ModelTest < Minitest::Test
   end
 
   def test_save_local_ensures_read_only
-    model = Doggy::Models::Monitor.new(id: 1, title: 'Some test', name: 'Monitor name', 'read_only' => false)
-    File.expects(:open).with(Doggy.object_root.join('monitor-1.json'), 'w')
-    model.save_local
-    assert model.read_only
+    monitor = Doggy::Models::Monitor.new(id: 1, title: 'Some test', name: 'Monitor name', options: {locked: false})
+    monitor.path = Tempfile.new('monitor-1.json').path
+    monitor.save_local
+    assert monitor.options.locked
+
+    dashboard = Doggy::Models::Dashboard.new({'dash' => {'title' => 'Pipeline', 'read_only' => false}})
+    dashboard.path = Tempfile.new('dash-1.json').path
+    dashboard.save_local
+    assert dashboard.read_only
   end
 
   def test_create
@@ -27,10 +32,10 @@ class Doggy::ModelTest < Minitest::Test
   end
 
   def test_update
-    model = Doggy::Models::Monitor.new(id: 1, title: 'Some test', name: 'Monitor name', 'read_only' => true)
+    model = Doggy::Models::Monitor.new(id: 1, title: 'Some test', name: 'Monitor name')
     stub_request(:put, "https://app.datadoghq.com/api/v1/monitor/1?api_key=api_key_123&application_key=app_key_345").
       with(:body => "{\"id\":1,\"message\":null,\"multi\":null,\"name\":\"Monitor name 🐶\",\"options\":{},"\
-           "\"org_id\":null,\"query\":null,\"read_only\":true,\"tags\":[],\"type\":null}").
+           "\"org_id\":null,\"query\":null,\"tags\":[],\"type\":null}").
       to_return(:status => 200)
     model.save
   end
