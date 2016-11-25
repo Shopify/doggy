@@ -9,6 +9,8 @@ module Doggy
   class Model
     include Virtus.model
 
+    attribute :read_only, Boolean
+
     # This stores the path on disk. We don't define it as a model attribute so
     # it doesn't get serialized.
     attr_accessor :path
@@ -174,7 +176,12 @@ module Doggy
       super(attributes)
     end
 
+    def ensure_read_only!
+      self.read_only = true
+    end
+
     def save_local
+      ensure_read_only!
       prefix = case self.class.name
         when 'Doggy::Models::Dashboard' then 'dash'
         when 'Doggy::Models::Monitor' then 'monitor'

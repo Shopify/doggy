@@ -9,6 +9,7 @@ module Doggy
 
     def run
       resource = resource_by_param
+      resource.read_only = false
       return Doggy.ui.error("Could not find resource with #{ @param }") unless resource
 
       Dir.chdir(File.dirname(resource.path)) do
