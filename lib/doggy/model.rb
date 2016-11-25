@@ -96,9 +96,10 @@ module Doggy
       end
 
       def infer_type(attributes)
-        return Models::Dashboard if attributes['graphs']
-        return Models::Monitor   if attributes['message']
-        return Models::Screen    if attributes['board_title']
+        has_key = ->(key) { attributes.has_key?(key.to_s) || attributes.has_key?(key.to_sym) }
+        return Models::Dashboard if has_key.call('graphs')
+        return Models::Monitor   if has_key.call('message')
+        return Models::Screen    if has_key.call('board_title')
       end
 
       def request(method, url, body = nil)
