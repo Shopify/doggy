@@ -1,0 +1,34 @@
+{
+  "board_bgtype": "board_graph",
+  "board_title": "Something TV",
+  "height": "164",
+  "id": 10,
+  "template_variables": [
+
+  ],
+  "templated": true,
+  "widgets": [
+    {
+      "board_id": 109,
+      "title_size": 16,
+      "title": true,
+      "refresh_every": 30000,
+      "tick_pos": "50%",
+      "title_align": "left",
+      "tick_edge": "bottom",
+      "text_align": "center",
+      "title_text": "",
+      "height": 5,
+      "bgcolor": "pink",
+      "html": "Red lines are bad",
+      "y": 24,
+      "x": 0,
+      "font_size": "18",
+      "tick": true,
+      "type": "note",
+      "width": 19,
+      "auto_refresh": false
+    }
+  ],
+  "width": "100%"
+}

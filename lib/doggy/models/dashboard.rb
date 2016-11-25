@@ -13,6 +13,10 @@ module Doggy
       attribute :template_variables, Array[Hash]
       attribute :read_only,          Boolean
 
+      def prefix
+        'dash'
+      end
+
       def ensure_read_only!
         self.read_only = true
       end

@@ -177,12 +177,6 @@ module Doggy
 
     def save_local
       ensure_read_only!
-      prefix = case self.class.name
-        when 'Doggy::Models::Dashboard' then 'dash'
-        when 'Doggy::Models::Monitor' then 'monitor'
-        when 'Doggy::Models::Screen' then 'screen'
-        end
-
       @path ||= Doggy.object_root.join("#{prefix}-#{id}.json")
       File.open(@path, 'w') { |f| f.write(JSON.pretty_generate(to_h)) }
     end

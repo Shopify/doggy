@@ -39,6 +39,10 @@ module Doggy
       attribute :type,    String
       attribute :multi,   Boolean
 
+      def prefix
+        'monitor'
+      end
+
       def ensure_read_only!
         if options
           self.options.locked = true

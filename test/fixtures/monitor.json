@@ -1,0 +1,26 @@
+{
+  "id": 22,
+  "message": "The unexpired keys growth for cache has exceeded the threshold",
+  "multi": true,
+  "name": "Cache expiry",
+  "options": {
+    "silenced": {
+    },
+    "thresholds": {
+      "critical": 500000.0,
+      "warning": 250000.0
+    },
+    "notify_audit": false,
+    "notify_no_data": false,
+    "no_data_timeframe": 480,
+    "timeout_h": 0,
+    "escalation_message": null,
+    "renotify_interval": 0
+  },
+  "org_id": 67,
+  "query": "change(avg(last_4h),last_1h):avg:redis.persist{role:app--shopify--redis--resque} by {host} > 9",
+  "tags": [
+
+  ],
+  "type": "query alert"
+}

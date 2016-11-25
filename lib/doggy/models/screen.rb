@@ -14,6 +14,10 @@ module Doggy
       attribute :width,              String
       attribute :read_only,          Boolean
 
+      def prefix
+        'screen'
+      end
+
       def ensure_read_only!
         self.read_only = true
       end
