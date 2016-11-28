@@ -31,8 +31,8 @@ module Doggy
     method_option "screens",      type: :boolean, default: true, desc: 'Pull screens'
     method_option "all_objects",  type: :boolean, default: false, desc: 'Push all objects even if they are not changed'
 
-    def push
-      CLI::Push.new(options.dup).run
+    def push(*ids)
+      CLI::Push.new(options.dup, ids).run
     end
 
     desc "mute OBJECT_ID OBJECT_ID OBJECT_ID", "Mutes monitor on DataDog"

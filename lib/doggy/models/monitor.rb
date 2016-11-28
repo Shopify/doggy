@@ -15,14 +15,15 @@ module Doggy
         attribute :timeout_h,          Integer
         attribute :escalation_message, String
         attribute :renotify_interval,  Integer
+        attribute :locked,             Boolean
 
         def to_h
-          return super unless monitor.id && monitor.loading_source == :local
-
-          # Pull remote silenced state. If we don't send this value, Datadog
-          # assumes that we want to unmute the monitor.
-          remote_monitor = Monitor.find(monitor.id)
-          self.silenced  = remote_monitor.options.silenced if remote_monitor.options
+          if monitor.id && monitor.loading_source == :local
+            # Pull remote silenced state. If we don't send this value, Datadog
+            # assumes that we want to unmute the monitor.
+            remote_monitor = Monitor.find(monitor.id)
+            self.silenced  = remote_monitor.options.silenced if remote_monitor.options
+          end
           super
         end
       end
@@ -37,6 +38,26 @@ module Doggy
       attribute :tags,    Array[String]
       attribute :type,    String
       attribute :multi,   Boolean
+
+      def prefix
+        'monitor'
+      end
+
+      def ensure_read_only!
+        if options
+          self.options.locked = true
+        else
+          self.options = Options.new(locked: true)
+        end
+      end
+
+      def refute_read_only!
+        if options
+          self.options.locked = false
+        else
+          self.options = Options.new(locked: false)
+        end
+      end
 
       def self.resource_url(id = nil)
         "https://app.datadoghq.com/api/v1/monitor".tap do |base_url|
@@ -83,7 +104,7 @@ module Doggy
       end
 
       def to_h
-        super.merge(options: options.to_h)
+        Doggy::Model.sort_by_key(super.merge(options: options.to_h))
       end
 
       private
