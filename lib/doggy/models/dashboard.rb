@@ -21,6 +21,10 @@ module Doggy
         self.read_only = true
       end
 
+      def refute_read_only!
+        self.read_only = false
+      end
+
       def self.resource_url(id = nil)
         "https://app.datadoghq.com/api/v1/dash".tap do |base_url|
           base_url << "/#{ id }" if id
