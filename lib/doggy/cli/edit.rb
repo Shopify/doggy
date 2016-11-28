@@ -64,7 +64,7 @@ module Doggy
       salt = random_word
       forked_resource = resource.dup
       forked_resource.id = nil
-      resource.read_only = false
+      forked_resource.read_only = false
       if resource.class.to_s.downcase =~ /dashboard/
         forked_resource.title = "[#{ salt }] " + forked_resource.title
         forked_resource.description = "[fork of #{ resource.id }] " + forked_resource.title

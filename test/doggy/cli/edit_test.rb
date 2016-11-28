@@ -20,12 +20,12 @@ class Doggy::CLI::PushTest < Minitest::Test
       description: '[fork of 2473] [randomword] My Dashboard',
       graphs: resource.graphs.dup,
       id: nil,
-      read_only: true, template_variables: [], title: "[randomword] #{resource.title} \xF0\x9F\x90\xB6"
+      read_only: false, template_variables: [], title: "[randomword] #{resource.title} \xF0\x9F\x90\xB6"
     }
     stub_request(:post, "https://app.datadoghq.com/api/v1/dash?api_key=api_key_123&application_key=app_key_345").
       with(body: JSON.dump(forked_resource_attributes)).
            to_return(status: 200, body: "{\"id\":#{forked_resource_id}}")
-    JSON.expects(:pretty_generate).with(forked_resource_attributes.merge(id: forked_resource_id))
+    JSON.expects(:pretty_generate).with(forked_resource_attributes.merge(id: forked_resource_id, read_only: true))
     cmd.expects(:system).with("open 'https://app.datadoghq.com/dash/#{forked_resource_id}'")
     cmd.expects(:wait_for_edit)
 
@@ -40,7 +40,5 @@ class Doggy::CLI::PushTest < Minitest::Test
       to_return(status: 200)
 
     cmd.run
-
-    refute resource.read_only
   end
 end
