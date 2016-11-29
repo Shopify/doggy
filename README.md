@@ -64,8 +64,13 @@ $ doggy mute IDs
 
 # Unmute monitor(s)
 $ doggy unmute IDs
+
+# Fork item and replace its values with something else. Useful for automation since it does no sanity checks, but dangerous for humans
+$ doggy fork ID --variables=existing_thing:new_thing "Existing Thing:New thing"
 ```
 Multiple IDs should be separated by space.
+
+
 
 ## Development
 

@@ -63,6 +63,17 @@ module Doggy
     def edit(id)
       CLI::Edit.new(options.dup, id).run
     end
+
+    desc "fork OBJECT_ID", "Forks existing object to new one"
+    long_desc <<-D
+      Edits an object
+    D
+
+    method_option :variables, :type => :hash, :default => {}
+
+    def fork(id)
+      CLI::Fork.new(options.dup, id).run
+    end
   end
 end
 
