@@ -69,7 +69,7 @@ module Doggy
       end
 
       def toggle_mute!(action)
-        return unless ['mute', 'unmute'].include?(action) || id
+        return unless ['mute', 'unmute'].include?(action) && id
         attributes = request(:post, "#{ resource_url(id) }/#{action}")
         if message = attributes['errors']
           Doggy.ui.error(message)
