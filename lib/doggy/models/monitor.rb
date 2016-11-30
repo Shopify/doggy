@@ -75,8 +75,8 @@ module Doggy
           Doggy.ui.error(message)
         else
           self.attributes = attributes
+          save_local
         end
-        save_local
       end
 
       def human_url
