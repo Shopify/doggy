@@ -18,7 +18,7 @@ module Doggy
         attribute :locked,             Boolean
 
         def to_h
-          if monitor.id && monitor.loading_source == :local
+          if monitor.id && monitor.loading_source == :local && (!monitor.options || monitor.options.silenced.empty?)
             # Pull remote silenced state. If we don't send this value, Datadog
             # assumes that we want to unmute the monitor.
             remote_monitor = Monitor.find(monitor.id)
