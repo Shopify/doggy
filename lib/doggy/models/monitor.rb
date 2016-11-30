@@ -5,7 +5,6 @@ module Doggy
     class Monitor < Doggy::Model
       class Options
         include Virtus.model
-        attr_accessor :monitor
 
         attribute :silenced,           Hash
         attribute :thresholds,         Hash
@@ -16,16 +15,6 @@ module Doggy
         attribute :escalation_message, String
         attribute :renotify_interval,  Integer
         attribute :locked,             Boolean
-
-        def to_h
-          if monitor.id && monitor.loading_source == :local
-            # Pull remote silenced state. If we don't send this value, Datadog
-            # assumes that we want to unmute the monitor.
-            remote_monitor = Monitor.find(monitor.id)
-            self.silenced  = remote_monitor.options.silenced if remote_monitor.options
-          end
-          super
-        end
       end
 
       attribute :id,     Integer
@@ -65,12 +54,6 @@ module Doggy
         end
       end
 
-      def initialize(attributes = nil)
-        super(attributes)
-
-        options.monitor = self if options
-      end
-
       def managed?
         !(name =~ Doggy::DOG_SKIP_REGEX)
       end
@@ -85,14 +68,15 @@ module Doggy
         ensure_renotify_interval_valid
       end
 
-      def mute
-        return unless id
-        request(:post, "#{ resource_url(id) }/mute")
-      end
-
-      def unmute
-        return unless id
-        request(:post, "#{ resource_url(id) }/unmute")
+      def toggle_mute!(action)
+        return unless ['mute', 'unmute'].include?(action) || id
+        attributes = request(:post, "#{ resource_url(id) }/#{action}")
+        if message = attributes['errors']
+          Doggy.ui.error(message)
+        else
+          self.attributes = attributes
+        end
+        save_local
       end
 
       def human_url
