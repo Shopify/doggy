@@ -17,13 +17,7 @@ module Doggy
     attr_accessor :loading_source
 
     class << self
-      def root=(root)
-        @root = root.to_s
-      end
-
-      def root
-        @root || nil
-      end
+      attr_accessor :root
 
       def find(id)
         attributes = request(:get, resource_url(id))
@@ -177,7 +171,7 @@ module Doggy
 
     def save_local
       ensure_read_only!
-      @path ||= Doggy.object_root.join("#{prefix}-#{id}.json")
+      self.path ||= Doggy.object_root.join("#{prefix}-#{id}.json")
       File.open(@path, 'w') { |f| f.write(JSON.pretty_generate(to_h)) }
     end
 
@@ -198,10 +192,10 @@ module Doggy
         attributes = request(:post, resource_url, body)
         self.id    = self.class.new(attributes).id
         save_local
-        Doggy.ui.say "Created #{ @path }"
+        Doggy.ui.say "Created #{ path }"
       else
         request(:put, resource_url(id), body)
-        Doggy.ui.say "Updated #{ @path }"
+        Doggy.ui.say "Updated #{ path }"
       end
     end
 

@@ -41,9 +41,9 @@ module Doggy
 
         # Here we traverse `remote_resources` to find remote resource with matching class name and id.
         # We cannot subtract `local_resources` from `remote_resources` because those are different kind of objects.
-        remote_resources_to_be_saved = normalized_resource_diff.map do |klass, id|
+        remote_resources_to_be_saved = normalized_resource_diff.map do |klass, normalized_resource_id|
           remote_resources.find do |rr|
-            rr.class.name == klass && rr.id == id
+            rr.class.name == klass && rr.id == normalized_resource_id
           end
         end
 
