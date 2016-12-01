@@ -53,7 +53,7 @@ module Doggy
 
       def changed_resources
         repo = Rugged::Repository.new(Doggy.object_root.parent.to_s)
-        repo.diff('feff4dee95a43f0b89dd2fb10f4d5ea636389c85', 'HEAD').each_delta.map do |delta|
+        repo.diff(current_sha, 'HEAD').each_delta.map do |delta|
           new_file_path = delta.new_file[:path]
           next unless new_file_path.match(/\Aobjects\//)
           is_deleted = delta.status == :deleted
