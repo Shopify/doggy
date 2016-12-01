@@ -1,6 +1,6 @@
 require_relative '../../test_helper'
 
-class Doggy::CLI::PushTest < Minitest::Test
+class Doggy::CLI::EditTest < Minitest::Test
   def test_run
     dashboard = Doggy::Models::Dashboard.new(load_fixture('dashboard.json'))
     monitor = Doggy::Models::Monitor.new(load_fixture('monitor.json'))

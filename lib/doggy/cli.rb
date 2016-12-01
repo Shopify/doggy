@@ -20,6 +20,12 @@ module Doggy
       CLI::Pull.new(options.dup, ids).run
     end
 
+    desc "delete", "Deletes objects with given ID from both local repository and Datadog"
+
+    def delete(*ids)
+      CLI::Delete.new.run
+    end
+
     desc "sync", "Pushes the changes to Datadog"
     long_desc <<-D
       Performs git diff between the HEAD and last deployed SHA to get the changes,

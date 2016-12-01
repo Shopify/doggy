@@ -12,7 +12,8 @@ module Doggy
       changed_resources.each do |resource|
         if resource.is_deleted
           Doggy.ui.say "Deleting #{resource.path}, with id = #{resource.id}"
-          resource.destroy
+          resp = resource.destroy
+          Dog.ui.error("Could not delete. Error: #{resp['errors']}. Skipping") if resp['errors']
         else
           Doggy.ui.say "Saving #{resource.path}, with id = #{resource.id}"
           resource.ensure_read_only!
