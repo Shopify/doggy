@@ -14,11 +14,6 @@ module Doggy
       attribute :width,              String
       attribute :read_only,          Boolean
 
-      def self.all
-        collection = request(:get, resource_url)['screenboards']
-        collection.map { |attributes| new(attributes) }
-      end
-
       def prefix
         'screen'
       end

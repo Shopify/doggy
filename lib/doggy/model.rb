@@ -31,10 +31,6 @@ module Doggy
         resource
       end
 
-      def all_remote_resources
-        [Models::Dashboard, Models::Monitor, Models::Screen].map(&:all).flatten
-      end
-
       def all_local_resources
         @all_local_resources ||= Parallel.map((Dir[Doggy.object_root.join("**/*.json")])) do |file|
           raw = File.read(file, encoding: 'utf-8')

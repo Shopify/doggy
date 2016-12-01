@@ -2,40 +2,28 @@
 
 module Doggy
   class CLI::Pull
-    def initialize(options, ids_or_names)
-      @options      = options
-      @ids_or_names = ids_or_names
+    def initialize(options, ids)
+      @options = options
+      @ids = ids
     end
 
     def run
+      @local_resources = Doggy::Model.all_local_resources
       if @ids_or_names.empty?
-        local_resources = Doggy::Model.all_local_resources
-        remote_resource_ids = []
-        Doggy::Model.all_remote_resources.each do |remote_resource|
-          remote_resource_ids << remote_resource.id
-          if local_resource = local_resources.find { |l| l.id == remote_resource.id }
+        @local_resources.each do |local_resource|
+          if remote_resource = local_resource.class.find(local_resource.id)
             remote_resource.path = local_resource.path
             remote_resource.save_local
+          else
+            local_resource.destroy_local
           end
         end
-        local_resources.each do |local_resource|
-          local_resource.destroy_local unless remote_resource_ids.include?(local_resource.id)
-        end
-
-        return
-      end
-
-      @ids_or_names.each do |id_or_name|
-        @local_resources = Doggy::Model.all_local_resources
-        if id_or_name =~ /^\d+$/
-          pull_by_id(id_or_name.to_i)
-        else
-          pull_by_file(id_or_name)
-        end
+      else
+        @ids.each { |id| pull_by_id(id.to_i) }
       end
     end
 
-  private
+    private
 
     def pull_by_id(id)
       local_resources = @local_resources.find_all { |l| l.id == id }
@@ -65,15 +53,6 @@ module Doggy
           remote_resource.save_local
         end
       end
-    end
-
-    def pull_by_file(file)
-      resolved_path = Doggy.resolve_path(file)
-      local_resource = @local_resources.find { |l| l.path == resolved_path }
-
-      remote_resource = local_resource.class.find(local_resource.id)
-      remote_resource.path = local_resource.path
-      remote_resource.save_local
     end
   end
 end

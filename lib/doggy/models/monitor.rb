@@ -28,11 +28,6 @@ module Doggy
       attribute :type,    String
       attribute :multi,   Boolean
 
-      def self.all
-        collection = request(:get, resource_url)
-        collection.map { |attributes| new(attributes) }
-      end
-
       def prefix
         'monitor'
       end

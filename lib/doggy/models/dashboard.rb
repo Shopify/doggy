@@ -13,11 +13,6 @@ module Doggy
       attribute :template_variables, Array[Hash]
       attribute :read_only,          Boolean
 
-      def self.all
-        collection = request(:get, resource_url)['dashes']
-        collection.map { |attributes| new(attributes) }
-      end
-
       def prefix
         'dash'
       end
