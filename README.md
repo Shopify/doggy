@@ -44,6 +44,9 @@ If you're feeling adventurous, just put plaintext `secrets.json` in your root ob
 ## Usage
 
 ```bash
+# Syncs local changes to Datadog since last deploy.
+$ doggy sync
+
 # Download items. If no ID is given it will download all the items managed by dog.
 $ doggy pull [IDs]
 
