@@ -31,27 +31,8 @@ module Doggy
         resource
       end
 
-      def assign_paths(remote_resources, local_resources)
-        remote_resources.each do |remote|
-          local = local_resources.find { |l| l.id == remote.id }
-          next unless local
-
-          remote.path = local.path
-        end
-      end
-
-      def all
-        collection = request(:get, resource_url)
-        if collection.is_a?(Hash) && collection.keys.length == 1
-          collection = collection.values.first
-        end
-
-        ids = collection
-          .map    { |record| new(record) }
-          .select { |instance| instance.managed? }
-          .map    { |instance| instance.id }
-
-        Parallel.map(ids) { |id| find(id) }
+      def all_remote_resources
+        [Models::Dashboard, Models::Monitor, Models::Screen].map(&:all).flatten
       end
 
       def all_local_resources

@@ -34,9 +34,7 @@ module Doggy
   private
 
     def resource_by_param
-      resources  = Doggy::Models::Dashboard.all_local
-      resources += Doggy::Models::Monitor.all_local
-      resources += Doggy::Models::Screen.all_local
+      resources  = Doggy::Model.all_local_resources
       if @param =~ /^[0-9]+$/ then
         id = @param.to_i
         return resources.find { |res| res.id == id }

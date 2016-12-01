@@ -9,9 +9,19 @@ module Doggy
 
     def run
       if @ids_or_names.empty?
-        pull_resources('dashboards', Models::Dashboard) if !@options.any? || @options['dashboards']
-        pull_resources('monitors',   Models::Monitor)   if !@options.any? || @options['monitors']
-        pull_resources('screens',    Models::Screen)    if !@options.any? || @options['screens']
+        local_resources = Doggy::Model.all_local_resources
+        remote_resource_ids = []
+        Doggy::Model.all_remote_resources.each do |remote_resource|
+          remote_resource_ids << remote_resource.id
+          if local_resource = local_resources.find { |l| l.id == remote_resource.id }
+            remote_resource.path = local_resource.path
+            remote_resource.save_local
+          end
+        end
+        local_resources.each do |local_resource|
+          local_resource.destroy_local unless remote_resource_ids.include?(local_resource.id)
+        end
+
         return
       end
 
@@ -65,20 +75,5 @@ module Doggy
       remote_resource.path = local_resource.path
       remote_resource.save_local
     end
-
-    def pull_resources(name, klass)
-      Doggy.ui.say "Pulling #{ name }..."
-      local_resources  = klass.all_local
-      remote_resources = klass.all
-
-      klass.assign_paths(remote_resources, local_resources)
-      remote_resources.each(&:save_local)
-
-      ids = local_resources.map(&:id) - remote_resources.map(&:id)
-      local_resources.each do |local_resource|
-        local_resource.destroy_local if ids.include?(local_resource.id)
-      end
-    end
   end
 end
-

@@ -5,9 +5,7 @@ class Doggy::CLI::EditTest < Minitest::Test
     dashboard = Doggy::Models::Dashboard.new(load_fixture('dashboard.json'))
     monitor = Doggy::Models::Monitor.new(load_fixture('monitor.json'))
 
-    Doggy::Models::Dashboard.expects(:all_local).twice.returns([dashboard])
-    Doggy::Models::Monitor.expects(:all_local).twice.returns([monitor])
-    Doggy::Models::Screen.expects(:all_local).twice.returns([])
+    Doggy::Model.expects(:all_local_resources).twice.returns([dashboard, monitor])
 
     [dashboard, monitor].each do |resource|
       resource.ensure_read_only!
