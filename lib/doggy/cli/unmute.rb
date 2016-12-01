@@ -9,7 +9,7 @@ module Doggy
 
     def run
       monitors = @ids.map { |id| Doggy::Models::Monitor.find(id) }
-      monitors.each(&:unmute)
+      monitors.each { |monitor| monitor.toggle_mute!('unmute') }
     end
   end
 end
