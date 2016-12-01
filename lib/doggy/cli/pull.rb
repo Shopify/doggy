@@ -1,5 +1,7 @@
 # encoding: utf-8
 
+require 'parallel'
+
 module Doggy
   class CLI::Pull
     def initialize(options, ids)
@@ -10,7 +12,7 @@ module Doggy
     def run
       @local_resources = Doggy::Model.all_local_resources
       if @ids.empty?
-        @local_resources.each do |local_resource|
+        Parallel.each(@local_resources) do |local_resource|
           if remote_resource = local_resource.class.find(local_resource.id)
             remote_resource.path = local_resource.path
             remote_resource.save_local
