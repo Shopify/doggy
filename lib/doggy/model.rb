@@ -69,7 +69,7 @@ module Doggy
         end
       end
 
-      def diff
+      def changed_resources
         #repo = Rugged::Repository.new(Doggy.object_root.parent.to_s)
         repo = Rugged::Repository.new('/Users/elvinefendi/workspace/dog')
         repo.diff('feff4dee95a43f0b89dd2fb10f4d5ea636389c85', 'HEAD').each_delta.map do |delta|

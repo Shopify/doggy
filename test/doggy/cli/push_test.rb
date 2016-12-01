@@ -1,31 +1,64 @@
 require_relative '../../test_helper'
 
 class Doggy::CLI::PushTest < Minitest::Test
-  def test_push_ensures_read_only
+  def test_sync_changes_save
     resource = Doggy::Models::Dashboard.new(load_fixture('dashboard.json'))
-    Doggy::Models::Dashboard.expects(:all_local).returns([resource])
-    Doggy::Models::Monitor.expects(:all_local).returns([])
-    Doggy::Models::Screen.expects(:all_local).returns([])
+    Doggy::Model.expects(:changed_resources).returns([resource])
     stub_request(:put, "https://app.datadoghq.com/api/v1/dash/#{resource.id}?api_key=api_key_123&application_key=app_key_345").
-      with(body: JSON.dump(resource.to_h.merge(read_only: true, title: resource.title + " \xF0\x9F\x90\xB6")))
-      .to_return(status: 200)
+      with(body: JSON.dump(resource.to_h.merge(read_only: true, title: resource.title + " \xF0\x9F\x90\xB6"))).
+      to_return(status: 200)
+    Doggy::CLI::Push.new.sync_changes
+  end
 
-    Doggy::CLI::Push.new({'dashboards' => true, 'monitors' => true, 'screens' => true}, []).run
+  def test_sync_changes_create
+    resource = Doggy::Models::Dashboard.new(load_fixture('dashboard.json'))
+    resource.id = nil
+    Doggy::Model.expects(:changed_resources).returns([resource])
+    stub_request(:post, "https://app.datadoghq.com/api/v1/dash?api_key=api_key_123&application_key=app_key_345").
+      with(body: JSON.dump(resource.to_h.merge(read_only: true, title: resource.title + " \xF0\x9F\x90\xB6"))).
+      to_return(status: 200, body: JSON.dump(id: 1))
+    File.expects(:open).with(Doggy.object_root.join('dash-1.json'), 'w')
+    Doggy::CLI::Push.new.sync_changes
+  end
+
+  def test_sync_changes_destroy
+    resource = Doggy::Models::Monitor.new(load_fixture('monitor.json'))
+    resource.is_deleted = true
+    Doggy::Model.expects(:changed_resources).returns([resource])
+    stub_request(:delete, "https://app.datadoghq.com/api/v1/#{resource.prefix}/#{resource.id}?api_key=api_key_123&application_key=app_key_345").
+      to_return(status: 200, body: JSON.dump(deleted_monitor_id: resource.id))
+    Doggy::CLI::Push.new.sync_changes
   end
 
   def test_push_by_ids
+    resources = prepare_for_push
+    Doggy::CLI::Push.new.push_all(resources.map { |r| r.id.to_s })
+  end
+
+  def test_push_all
+    prepare_for_push
+    Doggy.ui.expects(:yes?).with(Doggy::CLI::Push::WARNING_MESSAGE).returns(true)
+    Doggy::CLI::Push.new.push_all([])
+  end
+
+  def test_push_all_cancelled
+    Doggy.ui.expects(:yes?).with(Doggy::CLI::Push::WARNING_MESSAGE).returns(false)
+    Doggy.ui.expects(:say).with('Operation cancelled')
+    Doggy::CLI::Push.new.push_all([])
+  end
+
+  private
+
+  def prepare_for_push
     screen = Doggy::Models::Screen.new(load_fixture('screen.json'))
     monitor = Doggy::Models::Monitor.new(load_fixture('monitor.json'))
-    Doggy::Models::Dashboard.expects(:all_local).returns([])
-    Doggy::Models::Monitor.expects(:all_local).returns([monitor])
-    Doggy::Models::Screen.expects(:all_local).returns([screen])
+    Doggy::Model.expects(:all_local_resources).returns([screen, monitor])
     stub_request(:put, "https://app.datadoghq.com/api/v1/#{screen.prefix}/#{screen.id}?api_key=api_key_123&application_key=app_key_345").
       with(body: JSON.dump(Doggy::Model.sort_by_key(screen.to_h.merge(read_only: true, board_title: screen.board_title + " \xF0\x9F\x90\xB6")))).
       to_return(status: 200)
     stub_request(:put, "https://app.datadoghq.com/api/v1/#{monitor.prefix}/#{monitor.id}?api_key=api_key_123&application_key=app_key_345").
       with(body: JSON.dump(Doggy::Model.sort_by_key(monitor.to_h.merge(options: monitor.options.to_h.merge(locked: true), name: monitor.name + " \xF0\x9F\x90\xB6")))).
       to_return(status: 200)
-
-    Doggy::CLI::Push.new({}, [screen.id.to_s, monitor.id.to_s]).run
+    [screen, monitor]
   end
 end

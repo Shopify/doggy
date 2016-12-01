@@ -20,19 +20,25 @@ module Doggy
       CLI::Pull.new(options.dup, ids).run
     end
 
-    desc "push", "Pushes objects to Datadog"
+    desc "sync", "Pushes the changes to Datadog"
     long_desc <<-D
-      Pushes objects to Datadog. Any objects that aren't skipped and don't have
-      the marker in their title will get it as a result of a push.
+      Performs git diff between the HEAD and last deployed SHA to get the changes,
+      then accordingly either deletes or pushes an object to Datadog.
     D
 
-    method_option "dashboards",   type: :boolean, default: true, desc: 'Pull dashboards'
-    method_option "monitors",     type: :boolean, default: true, desc: 'Pull monitors'
-    method_option "screens",      type: :boolean, default: true, desc: 'Pull screens'
-    method_option "all_objects",  type: :boolean, default: false, desc: 'Push all objects even if they are not changed'
+    def sync(*ids)
+      CLI::Push.new.sync_changes
+    end
+
+    desc "push", "Hard pushes objects to Datadog"
+    long_desc <<-D
+      Pushes objects to Datadog. You can provide list of IDs to scope it to certain objects,
+      otherwise it will push all local objects to Datadog. The changes in Datadog that are not in
+      the repository will be overridden. This action does not delete anything.
+    D
 
     def push(*ids)
-      CLI::Push.new(options.dup, ids).run
+      CLI::Push.new.push_all(ids)
     end
 
     desc "mute OBJECT_ID OBJECT_ID OBJECT_ID", "Mutes monitor on DataDog"
