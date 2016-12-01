@@ -15,7 +15,7 @@ module Doggy
     desc "delete IDs", "Deletes objects with given IDs from both local repository and Datadog"
 
     def delete(*ids)
-      CLI::Delete.new.run
+      CLI::Delete.new.run(ids)
     end
 
     desc "sync", "Pushes the changes to Datadog"
