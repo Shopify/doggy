@@ -9,7 +9,7 @@ module Doggy
 
     def run
       @local_resources = Doggy::Model.all_local_resources
-      if @ids_or_names.empty?
+      if @ids.empty?
         @local_resources.each do |local_resource|
           if remote_resource = local_resource.class.find(local_resource.id)
             remote_resource.path = local_resource.path
