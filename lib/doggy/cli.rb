@@ -7,14 +7,6 @@ module Doggy
     include Thor::Actions
 
     desc "pull", "Pulls objects from Datadog"
-    long_desc <<-D
-      Pull objects from Datadog. All objects are pulled unless the type switches
-      are used.
-    D
-
-    method_option "dashboards", type: :boolean, desc: 'Pull dashboards'
-    method_option "monitors",   type: :boolean, desc: 'Pull monitors'
-    method_option "screens",    type: :boolean, desc: 'Pull screens'
 
     def pull(*ids)
       CLI::Pull.new(options.dup, ids).run
