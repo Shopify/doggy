@@ -13,6 +13,8 @@ module Doggy
     # it doesn't get serialized.
     attr_accessor :path
 
+    attr_accessor :is_deleted
+
     # This stores whether the resource has been loaded locally or remotely.
     attr_accessor :loading_source
 
@@ -52,39 +54,41 @@ module Doggy
       end
 
       def all_local_resources
-        @resources ||= [ Models::Dashboard,
-                         Models::Monitor,
-                         Models::Screen ].flat_map(&:all_local)
+        @all_local_resources ||= Parallel.map((Dir[Doggy.object_root.join("**/*.json")])) do |file|
+          raw = File.read(file, encoding: 'utf-8')
+          begin
+            attributes = JSON.parse(raw)
+          rescue JSON::ParserError
+            Doggy.ui.error "Could not parse #{ file }."
+            next
+          end
+          resource = infer_type(attributes).new(attributes)
+          resource.path = file
+          resource.loading_source = :local
+          resource
+        end
       end
 
-      def all_local(only_changed: false)
-        @all_local ||= begin
-                         # TODO: Add serializer support here
-                         if only_changed
-                           files   = Doggy.modified(Doggy::Model.current_sha).map { |i| Doggy.object_root.parent.join(i).to_s }
-                         else
-                           files   = Dir[Doggy.object_root.join("**/*.json")]
-                         end
-                         resources = Parallel.map(files) do |file|
-                           raw = File.read(file, encoding: 'utf-8')
-
-                           begin
-                             attributes = JSON.parse(raw)
-                           rescue JSON::ParserError
-                             Doggy.ui.error "Could not parse #{ file }."
-                             next
-                           end
-
-                           next unless infer_type(attributes) == self
-
-                           resource                = new(attributes)
-                           resource.path           = file
-                           resource.loading_source = :local
-                           resource
-                         end
-
-                         resources.compact
-                       end
+      def diff
+        #repo = Rugged::Repository.new(Doggy.object_root.parent.to_s)
+        repo = Rugged::Repository.new('/Users/elvinefendi/workspace/dog')
+        repo.diff('feff4dee95a43f0b89dd2fb10f4d5ea636389c85', 'HEAD').each_delta.map do |delta|
+          new_file_path = delta.new_file[:path]
+          next unless new_file_path.match(/\Aobjects\//)
+          is_deleted = delta.status == :deleted
+          oid = is_deleted ? delta.old_file[:oid] : delta.new_file[:oid]
+          begin
+            attributes = JSON.parse(repo.read(oid).data)
+          rescue JSON::ParserError
+            Doggy.ui.error("Could not parse #{ new_file_path }. Skipping...")
+            next
+          end
+          resource = infer_type(attributes).new(attributes)
+          resource.loading_source = :local
+          resource.path = Doggy.object_root.parent.join(new_file_path).to_s
+          resource.is_deleted = is_deleted
+          resource
+        end
       end
 
       def infer_type(attributes)

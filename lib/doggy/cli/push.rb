@@ -12,35 +12,41 @@ module Doggy
     end
 
     def run
-      if @ids.empty?
-        if @options['all_objects'] && !Doggy.ui.yes?(WARNING_MESSAGE)
-          Doggy.ui.say "Operation cancelled"
-          return
-        end
-        push_resources('dashboards', Models::Dashboard) if @options['dashboards']
-        push_resources('monitors',   Models::Monitor)   if @options['monitors']
-        push_resources('screens',    Models::Screen)    if @options['screens']
-      else
+      if !@ids.empty? || @options['all_objects'] && (warning_accepted = Doggy.ui.yes?(WARNING_MESSAGE))
         Doggy::Model.all_local_resources.each do |resource|
-          next unless @ids.include?(resource.id.to_s)
+          next unless @ids.include?(resource.id.to_s) && @options['all_objects']
           Doggy.ui.say "Pushing #{ resource.path }"
           resource.ensure_read_only!
           resource.save
         end
+      elsif !warning_accepted
+        Doggy.ui.say "Operation cancelled"
+        return
+      else
+        push_resources('dashboards', Models::Dashboard) unless @options['no-dashboards']
+        push_resources('monitors', Models::Monitor) unless @options['no-monitors']
+        push_resources('screens', Models::Screen) unless @options['no-screens']
       end
 
       Doggy::Model.emit_shipit_deployment
     end
 
-  private
+    private
 
     def push_resources(name, klass)
       Doggy.ui.say "Pushing #{ name }"
-      local_resources = klass.all_local(only_changed: !@options['all_objects'])
-      local_resources.each(&:ensure_read_only!)
+      local_resources = klass.all_local
       Doggy.ui.say "#{ local_resources.size } objects to push"
-      local_resources.each(&:save)
+      local_resources.each do |resource|
+        if resource.is_deleted
+          Doggy.ui.say "Deleting #{resource.path}, with id = #{resource.id}"
+          resource.destroy
+        else
+          Doggy.ui.say "Saving #{resource.path}, with id = #{resource.id}"
+          resource.ensure_read_only!
+          resource.save
+        end
+      end
     end
   end
 end
-
