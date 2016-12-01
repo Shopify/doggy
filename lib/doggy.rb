@@ -39,7 +39,7 @@ module Doggy
     current_dir = Dir.pwd
 
     while current_dir != '/' do
-      if File.exists?(File.join(current_dir, 'Gemfile')) then
+      if File.exist?(File.join(current_dir, 'Gemfile')) then
         return Pathname.new(current_dir)
       else
         current_dir = File.expand_path('../', current_dir)

@@ -12,6 +12,7 @@ require 'webmock/minitest'
 class MiniTest::Test
   def before_setup
     Doggy.stubs(:secrets).returns({'datadog_api_key' => 'api_key_123', 'datadog_app_key' => 'app_key_345'})
+    Doggy.ui.stubs(:say)
     super
   end
 

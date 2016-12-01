@@ -7,7 +7,7 @@ class Doggy::ModelTest < Minitest::Test
   end
 
   class DummyModelWithRoot < DummyModel
-    self.root = :dash
+    self.root = 'dash'
   end
 
   def test_save_local_ensures_read_only
