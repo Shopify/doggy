@@ -6,57 +6,59 @@ module Doggy
   class CLI < Thor
     include Thor::Actions
 
-    desc "pull", "Pulls objects from Datadog"
-    long_desc <<-D
-      Pull objects from Datadog. All objects are pulled unless the type switches
-      are used.
-    D
-
-    method_option "dashboards", type: :boolean, desc: 'Pull dashboards'
-    method_option "monitors",   type: :boolean, desc: 'Pull monitors'
-    method_option "screens",    type: :boolean, desc: 'Pull screens'
+    desc "pull [IDs]", "Pulls objects from Datadog"
 
     def pull(*ids)
       CLI::Pull.new(options.dup, ids).run
     end
 
-    desc "push", "Pushes objects to Datadog"
-    long_desc <<-D
-      Pushes objects to Datadog. Any objects that aren't skipped and don't have
-      the marker in their title will get it as a result of a push.
-    D
+    desc "delete IDs", "Deletes objects with given IDs from both local repository and Datadog"
 
-    method_option "dashboards",   type: :boolean, default: true, desc: 'Pull dashboards'
-    method_option "monitors",     type: :boolean, default: true, desc: 'Pull monitors'
-    method_option "screens",      type: :boolean, default: true, desc: 'Pull screens'
-    method_option "all_objects",  type: :boolean, default: false, desc: 'Push all objects even if they are not changed'
-
-    def push(*ids)
-      CLI::Push.new(options.dup, ids).run
+    def delete(*ids)
+      CLI::Delete.new.run(ids)
     end
 
-    desc "mute OBJECT_ID OBJECT_ID OBJECT_ID", "Mutes monitor on DataDog"
+    desc "sync", "Pushes the changes to Datadog"
     long_desc <<-D
-      Mutes monitors on Datadog.
+      Performs git diff between the HEAD and last deployed SHA to get the changes,
+      then accordingly either deletes or pushes objects to Datadog.
+    D
+
+    def sync
+      CLI::Push.new.sync_changes
+    end
+
+    desc "push [IDs]", "Hard pushes objects to Datadog"
+    long_desc <<-D
+      Pushes objects to Datadog. You can provide list of IDs to scope it to certain objects,
+      otherwise it will push all local objects to Datadog. The changes in Datadog that are not in
+      the repository will be overridden. This action does not delete anything.
+      IDs is a space separated list of item IDs.
+    D
+
+    def push(*ids)
+      CLI::Push.new.push_all(ids)
+    end
+
+    desc "mute IDs", "Mutes given monitors indefinitely"
+    long_desc <<-D
+      IDs is a space separated list of item IDs.
     D
 
     def mute(*ids)
       CLI::Mute.new(options.dup, ids).run
     end
 
-    desc "unmute OBJECT_ID OBJECT_ID OBJECT_ID", "Unmutes monitor on DataDog"
+    desc "unmute IDs", "Unmutes given monitors"
     long_desc <<-D
-      Unmutes monitors on datadog
+      IDs is a space separated list of item IDs.
     D
 
     def unmute(*ids)
       CLI::Unmute.new(options.dup, ids).run
     end
 
-    desc "edit OBJECT_ID", "Edits an object"
-    long_desc <<-D
-      Edits an object
-    D
+    desc "edit ID", "Edits given item in Datadog UI"
 
     def edit(id)
       CLI::Edit.new(options.dup, id).run

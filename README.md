@@ -44,30 +44,28 @@ If you're feeling adventurous, just put plaintext `secrets.json` in your root ob
 ## Usage
 
 ```bash
-# Download selected items from DataDog
-$ doggy pull ID ID
+# Syncs local changes to Datadog since last deploy.
+$ doggy sync
 
-# Download all items
-$ doggy pull
+# Download items. If no ID is given it will download all the items managed by dog.
+$ doggy pull [IDs]
 
-# Upload selected items to DataDog
-$ doggy push ID ID ID
+# Upload items to Datadog. If no ID is given it will push all items.
+$ doggy push [IDs]
 
-# Upload all items to DataDog
-$ doggy push
-
-# Edit a dashboard in WYSIWYG
+# Edit an item in WYSIWYG
 $ doggy edit ID
 
-# Delete selected items from both DataDog and local storage
-$ doggy delete ID ID ID
+# Delete selected items from both Datadog and local storage
+$ doggy delete IDs
 
 # Mute monitor(s) forever
-$ doggy mute ID ID ID
+$ doggy mute IDs
 
 # Unmute monitor(s)
-$ doggy unmute ID ID ID
+$ doggy unmute IDs
 ```
+Multiple IDs should be separated by space.
 
 ## Development
 
