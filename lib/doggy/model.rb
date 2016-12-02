@@ -65,7 +65,7 @@ module Doggy
           resource.path = Doggy.object_root.parent.join(new_file_path).to_s
           resource.is_deleted = is_deleted
           resource
-        end
+        end.compact
       end
 
       def infer_type(attributes)
