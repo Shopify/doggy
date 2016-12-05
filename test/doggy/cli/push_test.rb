@@ -50,15 +50,12 @@ class Doggy::CLI::PushTest < Minitest::Test
   private
 
   def prepare_for_push
-    screen = Doggy::Models::Screen.new(load_fixture('screen.json'))
-    monitor = Doggy::Models::Monitor.new(load_fixture('monitor.json'))
-    Doggy::Model.expects(:all_local_resources).returns([screen, monitor])
-    stub_request(:put, "https://app.datadoghq.com/api/v1/#{screen.prefix}/#{screen.id}?api_key=api_key_123&application_key=app_key_345").
-      with(body: JSON.dump(Doggy::Model.sort_by_key(screen.to_h.merge(read_only: true, board_title: screen.board_title + " \xF0\x9F\x90\xB6")))).
-      to_return(status: 200)
-    stub_request(:put, "https://app.datadoghq.com/api/v1/#{monitor.prefix}/#{monitor.id}?api_key=api_key_123&application_key=app_key_345").
-      with(body: JSON.dump(Doggy::Model.sort_by_key(monitor.to_h.merge(options: monitor.options.to_h.merge(locked: true), name: monitor.name + " \xF0\x9F\x90\xB6")))).
-      to_return(status: 200)
-    [screen, monitor]
+    resources = [ Doggy::Models::Screen.new(load_fixture('screen.json')), Doggy::Models::Monitor.new(load_fixture('monitor.json')) ]
+    resources.each do |resource|
+      resource.expects(:ensure_read_only!)
+      resource.expects(:save)
+    end
+    Doggy::Model.expects(:all_local_resources).returns(resources)
+    resources
   end
 end

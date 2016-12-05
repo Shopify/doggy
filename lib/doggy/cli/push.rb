@@ -29,7 +29,7 @@ module Doggy
         return
       end
       Doggy::Model.all_local_resources.each do |resource|
-        next if ids && !ids.include?(resource.id.to_s)
+        next if ids.any? && !ids.include?(resource.id.to_s)
         Doggy.ui.say "Pushing #{resource.path}, with id #{resource.id}"
         resource.ensure_read_only!
         resource.save
