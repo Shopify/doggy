@@ -2,6 +2,7 @@ PATH
   remote: .
   specs:
     doggy (2.0.32)
+      activesupport (~> 4)
       json (~> 1.8.3)
       parallel (~> 1.6.1)
       rugged (~> 0.23.2)
@@ -11,6 +12,12 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
+    activesupport (4.2.5.1)
+      i18n (~> 0.7)
+      json (~> 1.7, >= 1.7.7)
+      minitest (~> 5.1)
+      thread_safe (~> 0.3, >= 0.3.4)
+      tzinfo (~> 1.1)
     addressable (2.5.0)
       public_suffix (~> 2.0, >= 2.0.2)
     axiom-types (0.1.1)
@@ -25,6 +32,7 @@ GEM
       thread_safe (~> 0.3, >= 0.3.1)
     equalizer (0.0.11)
     hashdiff (0.2.3)
+    i18n (0.7.0)
     ice_nine (0.11.2)
     json (1.8.3)
     metaclass (0.0.4)
@@ -38,6 +46,8 @@ GEM
     safe_yaml (1.0.4)
     thor (0.19.1)
     thread_safe (0.3.5)
+    tzinfo (1.2.2)
+      thread_safe (~> 0.1)
     virtus (1.0.5)
       axiom-types (~> 0.1)
       coercible (~> 1.0)

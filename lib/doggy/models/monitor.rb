@@ -68,9 +68,9 @@ module Doggy
         ensure_renotify_interval_valid
       end
 
-      def toggle_mute!(action)
+      def toggle_mute!(action, body=nil)
         return unless ['mute', 'unmute'].include?(action) && id
-        attributes = request(:post, "#{ resource_url(id) }/#{action}")
+        attributes = request(:post, "#{ resource_url(id) }/#{action}", body)
         if message = attributes['errors']
           Doggy.ui.error(message)
         else
