@@ -8,7 +8,7 @@ module Doggy
     end
 
     def run
-      resource = resource_by_param
+      resource = Doggy::Model.find_local(@param)
       return Doggy.ui.error("Could not find resource with #{ @param }") unless resource
 
       forked_resource = fork(resource)
@@ -31,26 +31,7 @@ module Doggy
       forked_resource.destroy
     end
 
-  private
-
-    def resource_by_param
-      resources  = Doggy::Model.all_local_resources
-      if @param =~ /^[0-9]+$/ then
-        id = @param.to_i
-        return resources.find { |res| res.id == id }
-      elsif @param =~ /^http/ then
-        id = case @param
-          when /com\/dash/     then Integer(@param[/dash\/(\d+)/i, 1])
-          when /com\/screen/   then Integer(@param[/screen\/(\d+)/i, 1])
-          when /com\/monitors/ then Integer(@param[/monitors#(\d+)/i, 1])
-          else raise StandardError.new('Unknown resource type, cannot edit.')
-          end
-        return resources.find { |res| res.id == id }
-      else
-        full_path = File.expand_path(@param.gsub('objects/', ''), Doggy.object_root)
-        return resources.find { |res| res.path == full_path }
-      end
-    end
+    private
 
     def wait_for_edit
       while !Doggy.ui.yes?('Are you done editing?(Y/N)') do
@@ -82,4 +63,3 @@ module Doggy
     end
   end
 end
-
