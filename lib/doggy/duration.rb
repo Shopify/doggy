@@ -1,7 +1,10 @@
+# Copied from https://github.com/Shopify/spy/blob/ac7bfb9550bfd7bafd191bc31f1bcd9dc4ce9ee6/lib/spy/duration.rb
+# and edited accordingly
+
 require 'active_support/core_ext/module'
 require 'active_support/core_ext/integer'
 
-class Duration
+module Duration
   DURATION_FORMAT = /
     \A
     (?<days>\d+d)?
@@ -20,21 +23,10 @@ class Duration
   def self.parse(value)
     unless match = DURATION_FORMAT.match(value)
       raise ArgumentError, "not a duration: #{value.inspect}, "\
-      "use digits followed by a unit (#{DURATION_UNITS.keys.join(', ')} for #{DURATION_UNITS.values.join(', ')})"
+      "use digits followed by a unit (#{DURATION_UNITS.map { |k, v| "#{k} for #{v}" }.join(', ')})"
     end
-    duration = DURATION_UNITS.values.inject(0) do |as_duration, unit|
-      as_duration + match[unit].to_i.public_send(unit)
-    end
-    new(duration)
+    DURATION_UNITS.values.inject(0) do |sum, unit|
+      sum + match[unit].to_i.public_send(unit)
+    end.seconds
   end
-
-  def initialize(duration)
-    @as_duration = if duration.is_a?(ActiveSupport::Duration)
-                     duration
-                   else
-                     duration.to_i.seconds
-                   end
-  end
-
-  delegate :to_i, to: :@as_duration
 end
