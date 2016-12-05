@@ -43,7 +43,10 @@ module Doggy
     desc "mute IDs", "Mutes given monitors indefinitely"
     long_desc <<-D
       IDs is a space separated list of item IDs.
+      If `--duration` is not given, item will be muted indefinitely.
     D
+
+    method_option "duration", type: :string, desc: 'Mute only for the given period of time.'
 
     def mute(*ids)
       CLI::Mute.new(options.dup, ids).run

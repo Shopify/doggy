@@ -1,5 +1,7 @@
 # encoding: utf-8
 
+require 'doggy/duration'
+
 module Doggy
   class CLI::Mute
     def initialize(options, ids)
@@ -9,8 +11,11 @@ module Doggy
 
     def run
       monitors = @ids.map { |id| Doggy::Models::Monitor.find(id) }
-      monitors.each { |monitor| monitor.toggle_mute!('mute') }
+      body = {}
+      if @options['duration']
+        body[:end] = Time.now.utc.to_i + Duration.parse(@options['duration']).to_i
+      end
+      monitors.each { |monitor| monitor.toggle_mute!('mute', JSON.dump(body)) }
     end
   end
 end
-
