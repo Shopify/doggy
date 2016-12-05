@@ -75,6 +75,9 @@ module Doggy
           Doggy.ui.error(message)
         else
           self.attributes = attributes
+          if local_version = Doggy::Model.find_local(id)
+            self.path = local_version.path
+          end
           save_local
         end
       end

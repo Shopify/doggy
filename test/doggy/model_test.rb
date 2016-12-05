@@ -10,6 +10,20 @@ class Doggy::ModelTest < Minitest::Test
     self.root = 'dash'
   end
 
+  def test_find_local
+    dashboard = Doggy::Models::Dashboard.new(load_fixture('dashboard.json'))
+    monitor= Doggy::Models::Monitor.new(load_fixture('monitor.json'))
+    monitor.path = File.join(Doggy.object_root, 'some-folder/monitor-22.json')
+    screen = Doggy::Models::Screen.new(load_fixture('screen.json'))
+    Doggy::Model.expects(:all_local_resources).times(6).returns([dashboard, monitor, screen])
+    assert_equal dashboard, Doggy::Model.find_local(2473)
+    assert_equal dashboard, Doggy::Model.find_local('2473')
+    assert_equal dashboard, Doggy::Model.find_local('https://app.datadoghq.com/dash/2473')
+    assert_equal monitor, Doggy::Model.find_local('https://app.datadoghq.com/monitors#22/edit')
+    assert_equal monitor, Doggy::Model.find_local('objects/some-folder/monitor-22.json')
+    assert_equal screen, Doggy::Model.find_local('https://app.datadoghq.com/screen/10/bbbb')
+  end
+
   def test_save_local_ensures_read_only
     monitor = Doggy::Models::Monitor.new(id: 1, title: 'Some test', name: 'Monitor name', options: {locked: false})
     monitor.path = Tempfile.new('monitor-1.json').path

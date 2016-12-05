@@ -31,8 +31,20 @@ module Doggy
         resource
       end
 
+      def find_local(param)
+        resources  = Doggy::Model.all_local_resources
+        if (id = param).is_a?(Integer) || (param =~ /^[0-9]+$/ && id = Integer(param)) then
+          return resources.find { |res| res.id == id }
+        end
+        if id = param[/(dash\/|screen\/|monitors#)(\d+)/i, 2]
+          return resources.find { |res| res.id == Integer(id) }
+        end
+        full_path = File.expand_path(param.gsub('objects/', ''), Doggy.object_root)
+        resources.find { |res| res.path == full_path }
+      end
+
       def all_local_resources
-        @all_local_resources ||= Parallel.map((Dir[Doggy.object_root.join("**/*.json")])) do |file|
+        @@all_local_resources ||= Parallel.map(Dir[Doggy.object_root.join("**/*.json")]) do |file|
           raw = File.read(file, encoding: 'utf-8')
           begin
             attributes = JSON.parse(raw)
