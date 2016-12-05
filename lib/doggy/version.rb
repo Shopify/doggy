@@ -1,5 +1,5 @@
 # encoding: utf-8
 
 module Doggy
-  VERSION = "2.0.32"
+  VERSION = "2.0.33"
 end
