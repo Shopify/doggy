@@ -30,6 +30,16 @@ class Doggy::CLI::PushTest < Minitest::Test
     Doggy::CLI::Push.new.sync_changes
   end
 
+  def test_sync_changes_when_destroy_fails
+    resource = Doggy::Models::Monitor.new(load_fixture('monitor.json'))
+    resource.is_deleted = true
+    Doggy::Model.expects(:changed_resources).returns([resource])
+    stub_request(:delete, "https://app.datadoghq.com/api/v1/#{resource.prefix}/#{resource.id}?api_key=api_key_123&application_key=app_key_345").
+      to_return(status: 200, body: JSON.dump(errors: "#{resource.id} has already been deleted."))
+    Doggy.ui.expects(:error).with("Could not delete. Error: #{resource.id} has already been deleted.. Skipping")
+    Doggy::CLI::Push.new.sync_changes
+  end
+
   def test_push_by_ids
     resources = prepare_for_push
     Doggy::CLI::Push.new.push_all(resources.map { |r| r.id.to_s })
