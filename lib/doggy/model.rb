@@ -61,7 +61,9 @@ module Doggy
 
       def changed_resources
         repo = Rugged::Repository.new(Doggy.object_root.parent.to_s)
-        repo.diff(current_sha, 'HEAD').each_delta.map do |delta|
+        diff = repo.diff(current_sha, 'HEAD')
+        diff.find_similar!
+        diff.each_delta.map do |delta|
           new_file_path = delta.new_file[:path]
           next unless new_file_path.match(/\Aobjects\//)
           is_deleted = delta.status == :deleted
@@ -151,6 +153,10 @@ module Doggy
         raise NotImplementedError, "#resource_url has to be implemented."
       end
     end # class << self
+
+    def ==(another_model)
+      to_h == another_model.to_h
+    end
 
     def initialize(attributes = nil)
       root_key = self.class.root

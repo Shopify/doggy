@@ -1,4 +1,5 @@
 require_relative '../test_helper'
+require 'tmpdir'
 
 class Doggy::ModelTest < Minitest::Test
   class DummyModel < Doggy::Model
@@ -8,6 +9,63 @@ class Doggy::ModelTest < Minitest::Test
 
   class DummyModelWithRoot < DummyModel
     self.root = 'dash'
+  end
+
+  def test_changed_resources
+    repo_root = Dir.mktmpdir
+    Doggy.expects(:object_root).at_least_once.returns(Pathname.new('objects').expand_path(repo_root))
+    begin
+      repo = Rugged::Repository.init_at(repo_root)
+
+      oid = repo.write('just a file for initial commit', :blob)
+      repo.index.add(path: "a_random_file", oid: oid, mode: 0100644)
+      git_commit(repo)
+
+      screen_json = load_fixture('screen.json')
+      screen = Doggy::Models::Screen.new(screen_json)
+      git_create(repo, "objects/screen-#{screen.id}.json", JSON.dump(screen_json))
+
+      dashboard_to_delete = Doggy::Models::Dashboard.new(id: '666')
+      git_create(repo, "objects/dash-#{dashboard_to_delete.id}.json", JSON.dump(dashboard_to_delete.to_h))
+
+      monitor_json = load_fixture('monitor.json')
+      monitor = Doggy::Models::Monitor.new(monitor_json)
+      last_deployed_commit_sha = git_create(repo, "objects/monitor-#{monitor.id}.json", JSON.dump(monitor_json))
+      Doggy::Model.expects(:current_sha).returns(last_deployed_commit_sha)
+
+      # so the above commits are deployed, now we do some changes on the repo
+
+      # create a new dashboard
+      dashboard_json = load_fixture('dashboard.json')
+      dashboard = Doggy::Models::Dashboard.new(dashboard_json)
+      git_create(repo, "objects/dash-#{dashboard.id}.json", JSON.dump(dashboard_json['dash']))
+
+      # modify the existing monitor
+      monitor.name = 'An updated monitor name'
+      git_create(repo, "objects/monitor-#{monitor.id}.json", JSON.dump(monitor.to_h))
+      
+      # rename the screen
+      oid = repo.write(JSON.dump(screen_json), :blob)
+      repo.index.remove("objects/screen-#{screen.id}.json")
+      repo.index.add(path: "objects/new-folder/screen-#{screen.id}.json", oid: oid, mode: 0100644)
+      git_commit(repo)
+
+      # delete the dashboard
+      repo.index.remove("objects/dash-#{dashboard_to_delete.id}.json")
+      git_commit(repo)
+
+      # build expected objects and assert that the method returns them
+      [dashboard, monitor, screen, dashboard_to_delete].each do |resource|
+        resource.is_deleted = false
+        resource.path = Doggy.object_root.parent.join("objects/#{resource.prefix}-#{resource.id}.json").to_s
+        resource.loading_source = :local
+      end
+      screen.path = Doggy.object_root.parent.join("objects/new-folder/screen-#{screen.id}").to_s
+      dashboard_to_delete.is_deleted = true
+      assert_equal [dashboard, monitor, screen, dashboard_to_delete].sort_by(&:id), Doggy::Model.changed_resources.sort_by(&:id)
+    ensure
+      FileUtils.remove_entry(repo_root)
+    end
   end
 
   def test_find_local
@@ -89,5 +147,26 @@ class Doggy::ModelTest < Minitest::Test
     assert_equal Doggy::Models::Dashboard, Doggy::Model.infer_type({'graphs'      => []})
     assert_equal Doggy::Models::Monitor,   Doggy::Model.infer_type({'message'     => ''})
     assert_equal Doggy::Models::Screen,    Doggy::Model.infer_type({'board_title' => ''})
+  end
+
+  private
+
+  def git_create(repo, path, content)
+    oid = repo.write(content, :blob)
+    repo.index.read_tree(repo.head.target.tree) unless repo.empty?
+    repo.index.add(path: path, oid: oid, mode: 0100644)
+    git_commit(repo)
+  end
+
+  def git_commit(repo)
+    random_word = (0...12).map { (65 + rand(26)).chr.downcase }.join
+    options = {}
+    options[:tree] = repo.index.write_tree(repo)
+    options[:author] = { email: 'testuser@github.com', name: 'Test Author', time: Time.now }
+    options[:committer] = { email: 'testuser@github.com', name: 'Test Author', time: Time.now }
+    options[:message] ||= "Making a commit via Rugged! #{random_word}"
+    options[:parents] = repo.empty? ? [] : [ repo.head.target ].compact
+    options[:update_ref] = 'HEAD'
+    Rugged::Commit.create(repo, options)
   end
 end
