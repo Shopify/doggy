@@ -23,6 +23,10 @@ module Doggy
 
   extend self
 
+  def random_word
+    (0...12).map { (97 + rand(26)).chr }.join
+  end
+
   def ui
     (defined?(@ui) && @ui) || (self.ui = Thor::Shell::Color.new)
   end
