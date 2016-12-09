@@ -14,7 +14,7 @@ class Doggy::CLI::EditTest < Minitest::Test
       cmd = Doggy::CLI::Edit.new({}, resource.id.to_s)
 
       forked_resource_id = 2
-      cmd.expects(:random_word).returns('randomword')
+      Doggy.expects(:random_word).returns('randomword')
       forked_resource_attributes = resource.to_h.dup.merge(id: nil)
       if resource.is_a?(Doggy::Models::Dashboard)
         forked_resource_attributes.merge!(title: "[randomword] #{resource.title} \xF0\x9F\x90\xB6",

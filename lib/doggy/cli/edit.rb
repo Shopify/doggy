@@ -40,7 +40,7 @@ module Doggy
     end
 
     def fork(resource)
-      salt = random_word
+      salt = Doggy.random_word
       forked_resource = resource.dup
       forked_resource.id = nil
       forked_resource.refute_read_only!
@@ -56,10 +56,6 @@ module Doggy
       end
       forked_resource.save
       forked_resource
-    end
-
-    def random_word
-      (0...12).map { (65 + rand(26)).chr.downcase }.join
     end
   end
 end

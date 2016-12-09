@@ -62,7 +62,9 @@ class Doggy::ModelTest < Minitest::Test
       end
       screen.path = Doggy.object_root.parent.join("objects/new-folder/screen-#{screen.id}").to_s
       dashboard_to_delete.is_deleted = true
-      assert_equal [dashboard, monitor, screen, dashboard_to_delete].sort_by(&:id), Doggy::Model.changed_resources.sort_by(&:id)
+
+      assert_equal [dashboard, monitor, screen, dashboard_to_delete].sort_by(&:id),\
+        Doggy::Model.changed_resources.sort_by(&:id)
     ensure
       FileUtils.remove_entry(repo_root)
     end
@@ -159,13 +161,12 @@ class Doggy::ModelTest < Minitest::Test
   end
 
   def git_commit(repo)
-    random_word = (0...12).map { (65 + rand(26)).chr.downcase }.join
     options = {}
     options[:tree] = repo.index.write_tree(repo)
     options[:author] = { email: 'testuser@github.com', name: 'Test Author', time: Time.now }
     options[:committer] = { email: 'testuser@github.com', name: 'Test Author', time: Time.now }
-    options[:message] ||= "Making a commit via Rugged! #{random_word}"
-    options[:parents] = repo.empty? ? [] : [ repo.head.target ].compact
+    options[:message] = "Making a commit via Rugged! #{Doggy.random_word}"
+    options[:parents] = repo.empty? ? [] : [repo.head.target].compact
     options[:update_ref] = 'HEAD'
     Rugged::Commit.create(repo, options)
   end
