@@ -17,9 +17,7 @@ class Doggy::ModelTest < Minitest::Test
     begin
       repo = Rugged::Repository.init_at(repo_root)
 
-      oid = repo.write('just a file for initial commit', :blob)
-      repo.index.add(path: "a_random_file", oid: oid, mode: 0100644)
-      git_commit(repo)
+      git_create(repo, 'Gemfile', "source 'https://rubygems.org'\n\ngemspec")
 
       screen_json = load_fixture('screen.json')
       screen = Doggy::Models::Screen.new(screen_json)
@@ -34,6 +32,9 @@ class Doggy::ModelTest < Minitest::Test
       Doggy::Model.expects(:current_sha).returns(last_deployed_commit_sha)
 
       # so the above commits are deployed, now we do some changes on the repo
+
+      # modify the non Datadog file - this is to test that changed_resources ignores non datadog diffs
+      git_create(repo, 'Gemfile', 'source "https://rubygems.org"')
 
       # create a new dashboard
       dashboard_json = load_fixture('dashboard.json')
