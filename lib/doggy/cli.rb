@@ -6,6 +6,13 @@ module Doggy
   class CLI < Thor
     include Thor::Actions
 
+    map %w(--version -v) => :__print_version
+
+    desc '--version, -v', 'print the version'
+    def __print_version
+      puts Doggy::VERSION
+    end
+
     desc "pull [IDs]", "Pulls objects from Datadog"
 
     def pull(*ids)
@@ -40,7 +47,7 @@ module Doggy
       CLI::Push.new.push_all(ids)
     end
 
-    desc "mute IDs", "Mutes given monitors indefinitely"
+    desc "mute IDs [--duration DURATION]", "Mutes given monitors indefinitely or for the specific duration"
     long_desc <<-D
       IDs is a space separated list of item IDs.
       If `--duration` is not given, item will be muted indefinitely.
