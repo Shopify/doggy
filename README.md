@@ -1,5 +1,7 @@
 # Doggy
 
+[![Build Status](https://travis-ci.org/Shopify/doggy.svg?branch=master)](https://travis-ci.org/Shopify/doggy)
+
 Doggy manages your DataDog dashboards, alerts, monitors, and screenboards.
 
 ## Installation
