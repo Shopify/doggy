@@ -13,7 +13,7 @@ module Doggy
         if resource.is_deleted
           Doggy.ui.say "Deleting #{resource.path}, with id = #{resource.id}"
           resp = resource.destroy
-          Doggy.ui.error("Could not delete. Error: #{resp['errors']}. Skipping") if resp['errors']
+          Doggy.ui.say "Response: #{resp.inspect}"
         else
           Doggy.ui.say "Saving #{resource.path}, with id = #{resource.id}"
           resource.ensure_read_only!
