@@ -15,6 +15,7 @@ module Doggy
       if @options['duration']
         body[:end] = Time.now.utc.to_i + Duration.parse(@options['duration']).to_i
       end
+      body[:scope] = @options['scope'] if @options['scope']
       monitors.each { |monitor| monitor.toggle_mute!('mute', JSON.dump(body)) }
     end
   end
