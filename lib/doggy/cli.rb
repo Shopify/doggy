@@ -47,22 +47,26 @@ module Doggy
       CLI::Push.new.push_all(ids)
     end
 
-    desc "mute IDs [--duration DURATION]", "Mutes given monitors indefinitely or for the specific duration"
+    desc 'mute IDs [--duration DURATION]', 'Mutes given monitors indefinitely or for the specific duration'
     long_desc <<-D
       IDs is a space separated list of item IDs.
       If `--duration` is not given, item will be muted indefinitely.
     D
 
-    method_option "duration", type: :string, desc: 'Mute only for the given period of time.'
+    method_option 'duration', type: :string, desc: 'Mute only for the given period of time.'
+    method_option 'scope', type: :string, desc: 'The scope to apply the mute to.'
 
     def mute(*ids)
       CLI::Mute.new(options.dup, ids).run
     end
 
-    desc "unmute IDs", "Unmutes given monitors"
+    desc 'unmute IDs', 'Unmutes given monitors'
     long_desc <<-D
       IDs is a space separated list of item IDs.
     D
+
+    method_option 'scope', type: :string, desc: 'The scope to apply the unmute to.'
+    method_option 'all_scopes', type: :boolean, default: false, desc: 'Clear muting across all scopes.'
 
     def unmute(*ids)
       CLI::Unmute.new(options.dup, ids).run
