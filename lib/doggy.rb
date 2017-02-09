@@ -21,6 +21,8 @@ module Doggy
   DOG_SKIP_REGEX         = /\xF0\x9F\x98\xB1|:scream:/i.freeze
   MANAGED_BY_DOGGY_REGEX = /\xF0\x9F\x90\xB6|:dog:/i.freeze
 
+  class DoggyError < StandardError; end
+
   extend self
 
   def random_word

@@ -112,6 +112,9 @@ module Doggy
         request.body = body if body
 
         response = http.request(request)
+        unless response.code =~ /\A[23][0-9]{2}\Z/
+          raise DoggyError, "Unexpected response code #{response.code} for #{url}."
+        end
         response.body ? JSON.parse(response.body) : nil
       end
 
