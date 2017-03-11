@@ -3,8 +3,8 @@
 module Doggy
   class CLI::Push
     WARNING_MESSAGE = "You are about to force push all the objects. "\
-      "This will override changes in Datadog if they have not been sycned to the dog repository. "\
-      "Do you want to proceed?(Y/N)"
+      "This will override changes in Datadog if they have not been synced to the dog repository. "\
+      "Do you want to proceed? (Y/N)"
 
     def sync_changes
       changed_resources = Doggy::Model.changed_resources

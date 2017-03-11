@@ -23,7 +23,8 @@ module Doggy
       attr_accessor :root
 
       def find(id)
-        attributes = request(:get, resource_url(id))
+        attributes = nil
+        attributes = request(:get, resource_url(id), [404])
         return if attributes['errors']
         resource   = new(attributes)
 
@@ -89,7 +90,7 @@ module Doggy
         return Models::Screen    if has_key.call('board_title')
       end
 
-      def request(method, url, body = nil)
+      def request(method, url, body = nil, accepted_errors = nil)
         uri = URI(url)
 
         if uri.query
@@ -112,10 +113,20 @@ module Doggy
         request.body = body if body
 
         response = http.request(request)
-        unless response.code =~ /\A[23][0-9]{2}\Z/
-          raise DoggyError, "Unexpected response code #{response.code} for #{url}."
+        parsed_response = response.body ? JSON.parse(response.body) : nil
+
+        unless accepted_response(response.code.to_i, accepted_errors)
+          raise DoggyError, "Unexpected response code #{response.code} for #{url}, body: #{parsed_response.to_s}"
         end
-        response.body ? JSON.parse(response.body) : nil
+        parsed_response
+      end
+
+      def accepted_response(code, accepted_errors = nil)
+        if (accepted_errors != nil) && (accepted_errors.include? code)
+          true
+        else
+          code >= 200 && code < 400
+        end
       end
 
       def current_sha
