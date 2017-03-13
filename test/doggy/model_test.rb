@@ -126,6 +126,18 @@ class Doggy::ModelTest < Minitest::Test
     model.save
   end
 
+  def test_find_missing
+    stub_test_find(400)
+    assert_raises Doggy::DoggyError do
+      Doggy::Models::Monitor.find(1)
+    end
+  end
+
+  def test_find_success
+    stub_test_find(404)
+    Doggy::Models::Monitor.find(1)
+  end
+
   def test_sort_by_key
     h = { b: [ {d: 1, a: 2}, {x: 1, p: 3, y: 5} ], a: 3 }
     expected = { a: 3, b: [ {a: 2, d: 1}, {p: 3, x: 1, y: 5} ] }
@@ -164,6 +176,13 @@ class Doggy::ModelTest < Minitest::Test
   end
 
   private
+
+  def stub_test_find(return_code)
+    Doggy::Models::Monitor.new(id: 1, title: 'Some test', name: 'Monitor name')
+    stub_request(:get, "https://app.datadoghq.com/api/v1/monitor/1?api_key=api_key_123&application_key=app_key_345").
+      with(:headers => {'Accept'=>'*/*', 'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'Content-Type'=>'application/json', 'User-Agent'=>'Ruby'}).
+      to_return(:status => return_code, :body => "{\"errors\":[]}", :headers => {})
+  end
 
   def git_create(repo, path, content)
     oid = repo.write(content, :blob)

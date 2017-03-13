@@ -23,8 +23,7 @@ module Doggy
       attr_accessor :root
 
       def find(id)
-        attributes = nil
-        attributes = request(:get, resource_url(id), [404])
+        attributes = request(:get, resource_url(id), nil, [404])
         return if attributes['errors']
         resource   = new(attributes)
 
