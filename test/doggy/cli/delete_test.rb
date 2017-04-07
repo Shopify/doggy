@@ -25,7 +25,7 @@ class Doggy::CLI::DeleteTest < Minitest::Test
     [screen, monitor].each do |resource|
       resource.path = Tempfile.new("#{resource.prefix}-#{resource.id}.json").path
       stub_request(:delete, "https://app.datadoghq.com/api/v1/#{resource.prefix}/#{resource.id}?api_key=api_key_123&application_key=app_key_345").
-        to_return(status: 200, body: JSON.dump("deleted_#{resource.class.name.split('::').last.downcase}_id" => resource.id))
+        to_return(status: 404, body: JSON.dump("deleted_#{resource.class.name.split('::').last.downcase}_id" => resource.id))
       File.expects(:delete).with(resource.path)
     end
     Doggy::CLI::Delete.new.run([screen.id.to_s, monitor.id.to_s])
