@@ -212,7 +212,7 @@ module Doggy
     end
 
     def destroy
-      request(:delete, resource_url(id))
+      self.class.request(:delete, resource_url(id), nil, [404])
     end
 
     def destroy_local
