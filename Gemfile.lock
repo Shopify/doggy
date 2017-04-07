@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    doggy (2.0.39)
+    doggy (2.0.40)
       activesupport (~> 4)
       json (~> 1.8.3)
       parallel (~> 1.6.1)
@@ -69,4 +69,4 @@ DEPENDENCIES
   webmock
 
 BUNDLED WITH
-   1.13.7
+   1.14.4
