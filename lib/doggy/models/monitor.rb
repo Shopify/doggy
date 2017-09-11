@@ -6,19 +6,19 @@ module Doggy
       class Options
         include Virtus.model
 
-        attribute :silenced,           Hash
-        attribute :thresholds,         Hash
-        attribute :notify_audit,       Boolean
-        attribute :notify_no_data,     Boolean
-        attribute :no_data_timeframe,  Integer
-        attribute :timeout_h,          Integer
-        attribute :escalation_message, String
-        attribute :renotify_interval,  Integer
-        attribute :locked,             Boolean
-        attribute :include_tags,       Boolean
-        attribute :require_full_window,Boolean
-        attribute :new_host_delay,     Integer
-        attribute :evaluation_delay,   Integer
+        attribute :escalation_message,  String
+        attribute :evaluation_delay,    Integer
+        attribute :include_tags,        Boolean
+        attribute :locked,              Boolean
+        attribute :new_host_delay,      Integer
+        attribute :no_data_timeframe,   Integer
+        attribute :notify_audit,        Boolean
+        attribute :notify_no_data,      Boolean
+        attribute :renotify_interval,   Integer
+        attribute :require_full_window, Boolean
+        attribute :silenced,            Hash
+        attribute :thresholds,          Hash
+        attribute :timeout_h,           Integer
       end
 
       attribute :id,     Integer
