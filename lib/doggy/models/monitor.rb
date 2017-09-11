@@ -15,6 +15,10 @@ module Doggy
         attribute :escalation_message, String
         attribute :renotify_interval,  Integer
         attribute :locked,             Boolean
+        attribute :include_tags,       Boolean
+        attribute :require_full_window,Boolean
+        attribute :new_host_delay,     Integer
+        attribute :evaluation_delay,   Integer
       end
 
       attribute :id,     Integer
