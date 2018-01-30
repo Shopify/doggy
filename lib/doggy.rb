@@ -54,6 +54,10 @@ module Doggy
     end
   end
 
+  def base_human_url
+    ENV['DATADOG_BASE_HUMAN_URL'] || secrets['datadog_base_human_url'] || 'app.datadoghq.com'
+  end
+
   def api_key
     ENV['DATADOG_API_KEY'] || secrets['datadog_api_key']
   end

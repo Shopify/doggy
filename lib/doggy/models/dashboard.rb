@@ -42,7 +42,7 @@ module Doggy
       end
 
       def human_url
-        "https://app.datadoghq.com/dash/#{ id }"
+        "https://#{Doggy.base_human_url}/dash/#{ id }"
       end
 
       # Dashboards don't have a direct edit URL

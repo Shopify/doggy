@@ -28,6 +28,8 @@ To authenticate, you need to set API and APP keys for your DataDog account.
 
 Export `DATADOG_API_KEY` and `DATADOG_APP_KEY` environment variables and `doggy` will catch them up automatically.
 
+Optional: You can set `DATADOG_BASE_HUMAN_URL` environment variable if your organization uses a custom domain. This will change the urls given to users.
+
 #### ejson
 
 Set up `ejson` by putting `secrets.ejson` in your root object store.
@@ -42,6 +44,8 @@ If you're feeling adventurous, just put plaintext `secrets.json` in your root ob
   "datadog_app_key": "key2"
 }
 ```
+
+Optional: Add `datadog_base_human_url` if your organization uses a custom domain.
 
 ## Usage
 

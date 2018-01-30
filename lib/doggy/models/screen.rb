@@ -43,7 +43,7 @@ module Doggy
       end
 
       def human_url
-        "https://app.datadoghq.com/screen/#{ id }"
+        "https://#{Doggy.base_human_url}/screen/#{ id }"
       end
 
       # Screens don't have a direct edit URL
