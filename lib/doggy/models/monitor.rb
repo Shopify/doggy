@@ -87,11 +87,11 @@ module Doggy
       end
 
       def human_url
-        "https://app.datadoghq.com/monitors##{ id }"
+        "https://#{Doggy.base_human_url}/monitors##{ id }"
       end
 
       def human_edit_url
-        "https://app.datadoghq.com/monitors##{ id }/edit"
+        "https://#{Doggy.base_human_url}/monitors##{ id }/edit"
       end
 
       def to_h
