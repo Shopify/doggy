@@ -63,7 +63,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  bundler (~> 1.10)
+  bundler (~> 2.0)
   doggy!
   minitest
   mocha
@@ -71,4 +71,4 @@ DEPENDENCIES
   webmock
 
 BUNDLED WITH
-   1.16.1
+   2.0.1
