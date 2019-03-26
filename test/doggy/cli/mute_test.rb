@@ -1,6 +1,6 @@
 require_relative '../../test_helper'
 
-class Doggy::CLI::MuteTest < Minitest::Test
+class Doggy::CLI::MuteTest < MiniTest::Test
   def test_run
     mocked_run
     now = Time.new(2020, 1, 1, 1, 1, 1, '+00:00')
