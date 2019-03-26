@@ -6,7 +6,7 @@ require 'doggy'
 require 'minitest/pride'
 require 'minitest/autorun'
 require 'minitest/unit'
-require 'mocha/mini_test'
+require 'mocha/minitest'
 require 'webmock/minitest'
 
 class MiniTest::Test
