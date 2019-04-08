@@ -1,4 +1,5 @@
 # encoding: utf-8
+# frozen_string_literal: true
 
 module Doggy
   module Models
@@ -27,9 +28,7 @@ module Doggy
       end
 
       def self.resource_url(id = nil)
-        "https://app.datadoghq.com/api/v1/screen".tap do |base_url|
-          base_url << "/#{ id }" if id
-        end
+        "https://app.datadoghq.com/api/v1/screen/#{id}"
       end
 
       def managed?
@@ -38,12 +37,12 @@ module Doggy
 
       def ensure_managed_emoji!
         return unless managed?
-        return if self.board_title =~ /\xF0\x9F\x90\xB6/
+        return if board_title =~ /\xF0\x9F\x90\xB6/
         self.board_title += " \xF0\x9F\x90\xB6"
       end
 
       def human_url
-        "https://#{Doggy.base_human_url}/screen/#{ id }"
+        "https://#{Doggy.base_human_url}/screen/#{id}"
       end
 
       # Screens don't have a direct edit URL
@@ -51,4 +50,3 @@ module Doggy
     end # Screen
   end # Models
 end # Doggy
-

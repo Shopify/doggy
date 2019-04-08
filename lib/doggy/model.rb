@@ -1,4 +1,5 @@
 # encoding: utf-8
+# frozen_string_literal: true
 
 require "json"
 require "parallel"
@@ -25,18 +26,18 @@ module Doggy
       def find(id)
         attributes = request(:get, resource_url(id), nil, [404])
         return if attributes['errors']
-        resource   = new(attributes)
+        resource = new(attributes)
 
         resource.loading_source = :remote
         resource
       end
 
       def find_local(param)
-        resources  = Doggy::Model.all_local_resources
-        if (id = param).is_a?(Integer) || (param =~ /^[0-9]+$/ && id = Integer(param)) then
+        resources = Doggy::Model.all_local_resources
+        if (id = param).is_a?(Integer) || (param =~ /^[0-9]+$/ && id = Integer(param))
           return resources.find { |res| res.id == id }
         end
-        if id = param[/(dash\/|screen\/|monitors#)(\d+)/i, 2]
+        if id = param[%r{(dash/|screen/|monitors#)(\d+)}i, 2]
           return resources.find { |res| res.id == Integer(id) }
         end
         full_path = File.expand_path(param.gsub('objects/', ''), Doggy.object_root)
@@ -49,7 +50,7 @@ module Doggy
           begin
             attributes = JSON.parse(raw)
           rescue JSON::ParserError
-            Doggy.ui.error "Could not parse #{ file }."
+            Doggy.ui.error("Could not parse #{file}.")
             next
           end
           resource = infer_type(attributes).new(attributes)
@@ -65,13 +66,13 @@ module Doggy
         diff.find_similar!
         diff.each_delta.map do |delta|
           new_file_path = delta.new_file[:path]
-          next unless new_file_path.match(/\Aobjects\//)
+          next unless new_file_path =~ %r{\Aobjects/}
           is_deleted = delta.status == :deleted
           oid = is_deleted ? delta.old_file[:oid] : delta.new_file[:oid]
           begin
             attributes = JSON.parse(repo.read(oid).data)
           rescue JSON::ParserError
-            Doggy.ui.error("Could not parse #{ new_file_path }. Skipping...")
+            Doggy.ui.error("Could not parse #{new_file_path}. Skipping...")
             next
           end
           resource = infer_type(attributes).new(attributes)
@@ -83,7 +84,7 @@ module Doggy
       end
 
       def infer_type(attributes)
-        has_key = ->(key) { attributes.has_key?(key.to_s) || attributes.has_key?(key.to_sym) }
+        has_key = ->(key) { attributes.key?(key.to_s) || attributes.key?(key.to_sym) }
         return Models::Dashboard if has_key.call('graphs')
         return Models::Monitor   if has_key.call('message')
         return Models::Screen    if has_key.call('board_title')
@@ -92,10 +93,10 @@ module Doggy
       def request(method, url, body = nil, accepted_errors = nil)
         uri = URI(url)
 
-        if uri.query
-          uri.query = "api_key=#{ Doggy.api_key }&application_key=#{ Doggy.application_key }" + '&' + uri.query
+        uri.query = if uri.query
+          "api_key=#{Doggy.api_key}&application_key=#{Doggy.application_key}" + '&' + uri.query
         else
-          uri.query = "api_key=#{ Doggy.api_key }&application_key=#{ Doggy.application_key }"
+          "api_key=#{Doggy.api_key}&application_key=#{Doggy.application_key}"
         end
 
         http = Net::HTTP.new(uri.host, uri.port)
@@ -112,16 +113,16 @@ module Doggy
         request.body = body if body
 
         response = http.request(request)
-        parsed_response = response.body ? JSON.parse(response.body) : nil
+        parsed_response = response.body.present? ? JSON.parse(response.body) : nil
 
         unless accepted_response(response.code.to_i, accepted_errors)
-          raise DoggyError, "Unexpected response code #{response.code} for #{url}, body: #{parsed_response.to_s}"
+          raise DoggyError, "Unexpected response code #{response.code} for #{url}, body: #{parsed_response}"
         end
         parsed_response
       end
 
       def accepted_response(code, accepted_errors = nil)
-        if (accepted_errors != nil) && (accepted_errors.include? code)
+        if !accepted_errors.nil? && accepted_errors.include?(code)
           true
         else
           code >= 200 && code < 400
@@ -131,7 +132,7 @@ module Doggy
       def current_sha
         now = Time.now.to_i
         month_ago = now - 3600 * 24 * 30
-        result = request(:get, "https://app.datadoghq.com/api/v1/events?start=#{ month_ago }&end=#{ now }&tags=audit,shipit")
+        result = request(:get, "https://app.datadoghq.com/api/v1/events?start=#{month_ago}&end=#{now}&tags=audit,shipit")
         result['events'][0]['text'] # most recetly deployed SHA
       end
 
@@ -144,25 +145,24 @@ module Doggy
           tags: %w(audit shipit),
           date_happened: Time.now.to_i,
           priority: 'normal',
-          source_type_name: 'shipit'
+          source_type_name: 'shipit',
         }.to_json)
       end
 
       def sort_by_key(hash, &block)
-        hash.keys.sort(&block).reduce({}) do |seed, key|
+        hash.keys.sort(&block).each_with_object({}) do |key, seed|
           seed[key] = hash[key]
           if seed[key].is_a?(Hash)
             seed[key] = Doggy::Model.sort_by_key(seed[key], &block)
           elsif seed[key].is_a?(Array)
             seed[key].each_with_index { |e, i| seed[key][i] = sort_by_key(e, &block) if e.is_a?(Hash) }
           end
-          seed
         end
       end
 
       protected
 
-      def resource_url(id = nil)
+      def resource_url(_id = nil)
         raise NotImplementedError, "#resource_url has to be implemented."
       end
     end # class << self
@@ -200,14 +200,14 @@ module Doggy
       validate
 
       body = JSON.dump(to_h)
-      if !id then
+      if !id
         attributes = request(:post, resource_url, body)
         self.id    = self.class.new(attributes).id
         save_local
-        Doggy.ui.say "Created #{ path }"
+        Doggy.ui.say("Created #{path}")
       else
         request(:put, resource_url(id), body)
-        Doggy.ui.say "Updated #{ path }"
+        Doggy.ui.say("Updated #{path}")
       end
     end
 
@@ -230,4 +230,3 @@ module Doggy
     end
   end # Model
 end # Doggy
-
