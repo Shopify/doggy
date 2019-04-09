@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    doggy (2.0.43)
+    doggy (2.1.0)
       activesupport
       parallel
       rugged

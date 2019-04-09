@@ -2,5 +2,5 @@
 # frozen_string_literal: true
 
 module Doggy
-  VERSION = '2.0.43'
+  VERSION = '2.1.0'
 end
