@@ -1,4 +1,5 @@
 # encoding: utf-8
+# frozen_string_literal: true
 
 require 'parallel'
 
@@ -35,8 +36,8 @@ module Doggy
       end.compact
 
       if local_resources.size != remote_resources.size
-        normalized_remote_resources = remote_resources.map { |remote_resource| [ remote_resource.class.name, remote_resource.id ] }
-        normalized_local_resources = local_resources.map { |local_resource| [ local_resource.class.name, local_resource.id ] }
+        normalized_remote_resources = remote_resources.map { |remote_resource| [remote_resource.class.name, remote_resource.id] }
+        normalized_local_resources = local_resources.map { |local_resource| [local_resource.class.name, local_resource.id] }
         normalized_resource_diff = Hash[normalized_remote_resources - normalized_local_resources]
 
         # Here we traverse `remote_resources` to find remote resource with matching class name and id.

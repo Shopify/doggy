@@ -1,12 +1,19 @@
+# frozen_string_literal: true
+
 require_relative '../../test_helper'
 
 class Doggy::CLI::PushTest < Minitest::Test
+  def setup
+    Doggy.stubs(:secrets).returns('datadog_api_key' => 'api_key_123', 'datadog_app_key' => 'app_key_345')
+    Doggy.ui.stubs(:say)
+  end
+
   def test_sync_changes_save
     resource = Doggy::Models::Dashboard.new(load_fixture('dashboard.json'))
     Doggy::Model.expects(:changed_resources).returns([resource])
-    stub_request(:put, "https://app.datadoghq.com/api/v1/dash/#{resource.id}?api_key=api_key_123&application_key=app_key_345").
-      with(body: JSON.dump(resource.to_h.merge(read_only: true, title: resource.title + " \xF0\x9F\x90\xB6"))).
-      to_return(status: 200)
+    stub_request(:put, "https://app.datadoghq.com/api/v1/dash/#{resource.id}?api_key=api_key_123&application_key=app_key_345")
+      .with(body: JSON.dump(resource.to_h.merge(read_only: true, title: resource.title + " \xF0\x9F\x90\xB6")))
+      .to_return(status: 200)
     Doggy::CLI::Push.new.sync_changes
   end
 
@@ -14,9 +21,9 @@ class Doggy::CLI::PushTest < Minitest::Test
     resource = Doggy::Models::Dashboard.new(load_fixture('dashboard.json'))
     resource.id = nil
     Doggy::Model.expects(:changed_resources).returns([resource])
-    stub_request(:post, "https://app.datadoghq.com/api/v1/dash?api_key=api_key_123&application_key=app_key_345").
-      with(body: JSON.dump(resource.to_h.merge(read_only: true, title: resource.title + " \xF0\x9F\x90\xB6"))).
-      to_return(status: 200, body: JSON.dump(id: 1))
+    stub_request(:post, "https://app.datadoghq.com/api/v1/dash/?api_key=api_key_123&application_key=app_key_345")
+      .with(body: JSON.dump(resource.to_h.merge(read_only: true, title: resource.title + " \xF0\x9F\x90\xB6")))
+      .to_return(status: 200, body: JSON.dump(id: 1))
     File.expects(:open).with(Doggy.object_root.join('dash-1.json'), 'w')
     Doggy::CLI::Push.new.sync_changes
   end
@@ -25,8 +32,8 @@ class Doggy::CLI::PushTest < Minitest::Test
     resource = Doggy::Models::Monitor.new(load_fixture('monitor.json'))
     resource.is_deleted = true
     Doggy::Model.expects(:changed_resources).returns([resource])
-    stub_request(:delete, "https://app.datadoghq.com/api/v1/#{resource.prefix}/#{resource.id}?api_key=api_key_123&application_key=app_key_345").
-      to_return(status: 200, body: JSON.dump(deleted_monitor_id: resource.id))
+    stub_request(:delete, "https://app.datadoghq.com/api/v1/#{resource.prefix}/#{resource.id}?api_key=api_key_123&application_key=app_key_345")
+      .to_return(status: 200, body: JSON.dump(deleted_monitor_id: resource.id))
     Doggy::CLI::Push.new.sync_changes
   end
 
@@ -50,7 +57,7 @@ class Doggy::CLI::PushTest < Minitest::Test
   private
 
   def prepare_for_push
-    resources = [ Doggy::Models::Screen.new(load_fixture('screen.json')), Doggy::Models::Monitor.new(load_fixture('monitor.json')) ]
+    resources = [Doggy::Models::Screen.new(load_fixture('screen.json')), Doggy::Models::Monitor.new(load_fixture('monitor.json'))]
     resources.each do |resource|
       resource.expects(:ensure_read_only!)
       resource.expects(:save)

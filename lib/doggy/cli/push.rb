@@ -1,4 +1,5 @@
 # encoding: utf-8
+# frozen_string_literal: true
 
 module Doggy
   class CLI::Push
@@ -8,14 +9,14 @@ module Doggy
 
     def sync_changes
       changed_resources = Doggy::Model.changed_resources
-      Doggy.ui.say "Syncing #{changed_resources.size} objects to Datadog..."
+      Doggy.ui.say("Syncing #{changed_resources.size} objects to Datadog...")
       changed_resources.each do |resource|
         if resource.is_deleted
-          Doggy.ui.say "Deleting #{resource.path}, with id = #{resource.id}"
+          Doggy.ui.say("Deleting #{resource.path}, with id = #{resource.id}")
           resp = resource.destroy
-          Doggy.ui.say "Response: #{resp.inspect}"
+          Doggy.ui.say("Response: #{resp.inspect}")
         else
-          Doggy.ui.say "Saving #{resource.path}, with id = #{resource.id}"
+          Doggy.ui.say("Saving #{resource.path}, with id = #{resource.id}")
           resource.ensure_read_only!
           resource.save
         end
@@ -30,7 +31,7 @@ module Doggy
       end
       Doggy::Model.all_local_resources.each do |resource|
         next if ids.any? && !ids.include?(resource.id.to_s)
-        Doggy.ui.say "Pushing #{resource.path}, with id #{resource.id}"
+        Doggy.ui.say("Pushing #{resource.path}, with id #{resource.id}")
         resource.ensure_read_only!
         resource.save
       end

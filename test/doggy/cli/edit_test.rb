@@ -1,6 +1,13 @@
+# frozen_string_literal: true
+
 require_relative '../../test_helper'
 
 class Doggy::CLI::EditTest < Minitest::Test
+  def setup
+    Doggy.stubs(:secrets).returns('datadog_api_key' => 'api_key_123', 'datadog_app_key' => 'app_key_345')
+    Doggy.ui.stubs(:say)
+  end
+
   def test_run
     dashboard = Doggy::Models::Dashboard.new(load_fixture('dashboard.json'))
     monitor = Doggy::Models::Monitor.new(load_fixture('monitor.json'))
@@ -20,14 +27,14 @@ class Doggy::CLI::EditTest < Minitest::Test
         forked_resource_attributes.merge!(title: "[randomword] #{resource.title} \xF0\x9F\x90\xB6",
                                           description: '[fork of 2473] [randomword] My Dashboard', read_only: false)
       elsif resource.is_a?(Doggy::Models::Monitor)
-        forked_resource_attributes.merge!(name: "[randomword] Cache expiry \xF0\x9F\x90\xB6",
-                                          options: forked_resource_attributes[:options].merge(locked: false))
+        forked_resource_attributes[:name] = "[randomword] Cache expiry \xF0\x9F\x90\xB6"
+        forked_resource_attributes[:options] = forked_resource_attributes[:options].merge(locked: false)
       end
 
       forked_resource_attributes = Doggy::Model.sort_by_key(forked_resource_attributes)
-      stub_request(:post, "https://app.datadoghq.com/api/v1/#{resource.prefix}?api_key=api_key_123&application_key=app_key_345").
-        with(body: JSON.dump(forked_resource_attributes)).
-             to_return(status: 200, body: "{\"id\":#{forked_resource_id}}")
+      stub_request(:post, "https://app.datadoghq.com/api/v1/#{resource.prefix}/?api_key=api_key_123&application_key=app_key_345")
+        .with(body: JSON.dump(forked_resource_attributes))
+        .to_return(status: 200, body: "{\"id\":#{forked_resource_id}}")
       if resource.is_a?(Doggy::Models::Dashboard)
         JSON.expects(:pretty_generate).with(forked_resource_attributes.merge(id: forked_resource_id, read_only: true))
       elsif resource.is_a?(Doggy::Models::Monitor)
@@ -41,12 +48,12 @@ class Doggy::CLI::EditTest < Minitest::Test
         graph = new_resource_attributes[:graphs][0].dup
         new_resource_attributes[:graphs] = [graph.merge('title' => 'Not Average Memory Free anymore')]
       end
-      stub_request(:get, "https://app.datadoghq.com/api/v1/#{resource.prefix}/2?api_key=api_key_123&application_key=app_key_345").
-        to_return(status: 200, body: JSON.dump(new_resource_attributes.merge(id: forked_resource_id)))
+      stub_request(:get, "https://app.datadoghq.com/api/v1/#{resource.prefix}/2?api_key=api_key_123&application_key=app_key_345")
+        .to_return(status: 200, body: JSON.dump(new_resource_attributes.merge(id: forked_resource_id)))
       JSON.expects(:pretty_generate).with(new_resource_attributes)
 
-      stub_request(:delete, "https://app.datadoghq.com/api/v1/#{resource.prefix}/2?api_key=api_key_123&application_key=app_key_345").
-        to_return(status: 200)
+      stub_request(:delete, "https://app.datadoghq.com/api/v1/#{resource.prefix}/2?api_key=api_key_123&application_key=app_key_345")
+        .to_return(status: 200)
 
       cmd.run
     end

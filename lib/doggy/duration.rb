@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copied from https://github.com/Shopify/spy/blob/ac7bfb9550bfd7bafd191bc31f1bcd9dc4ce9ee6/lib/spy/duration.rb
 # and edited accordingly
 
@@ -5,14 +7,14 @@ require 'active_support/core_ext/module'
 require 'active_support/core_ext/integer'
 
 module Duration
-  DURATION_FORMAT = /
+  DURATION_FORMAT = %r{
     \A
     (?<days>\d+d)?
     (?<hours>\d+h)?
     (?<minutes>\d+m)?
     (?<seconds>\d+s)?
     \z
-  /x
+  }x
   DURATION_UNITS = {
     's' => :seconds,
     'm' => :minutes,

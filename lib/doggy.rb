@@ -1,4 +1,5 @@
 # encoding: utf-8
+# frozen_string_literal: true
 
 require "pathname"
 require "net/http"
@@ -45,8 +46,8 @@ module Doggy
     # TODO: Raise error when root can't be found
     current_dir = Dir.pwd
 
-    while current_dir != '/' do
-      if File.exist?(File.join(current_dir, 'Gemfile')) then
+    while current_dir != '/'
+      if File.exist?(File.join(current_dir, 'Gemfile'))
         return Pathname.new(current_dir)
       else
         current_dir = File.expand_path('../', current_dir)
@@ -73,7 +74,6 @@ module Doggy
 
     (curr_dir.expand_path(resolved + path) + path).to_s
   end
-
 
   protected
 

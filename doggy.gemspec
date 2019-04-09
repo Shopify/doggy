@@ -1,4 +1,6 @@
 # coding: utf-8
+# frozen_string_literal: true
+
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'doggy/version'
@@ -9,26 +11,27 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Vlad Gorodetsky", "Andre Medeiros"]
   spec.email         = ["v@gor.io", "me@andremedeiros.info"]
 
-  spec.summary       = %q{Syncs DataDog dashboards, alerts, screenboards, and monitors.}
-  spec.description   = %q{Syncs and manages DataDog dashboards, alerts, screenboards, and monitors.}
+  spec.summary       = 'Syncs DataDog dashboards, alerts, screenboards, and monitors.'
+  spec.description   = 'Syncs and manages DataDog dashboards, alerts, screenboards, and monitors.'
   spec.homepage      = "http://github.com/bai/doggy"
   spec.license       = "MIT"
 
-  spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
+  spec.files         = %x(git ls-files -z).split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
   spec.bindir        = "exe"
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.required_ruby_version = '~> 2.0'
+  spec.required_ruby_version = '~> 2.5'
 
-  spec.add_dependency "json",     "~> 1.8.3"
-  spec.add_dependency "parallel", "~> 1.6.1"
-  spec.add_dependency "thor",     "~> 0.19.1"
-  spec.add_dependency "virtus",   "~> 1.0.5"
-  spec.add_dependency "rugged",   "~> 0.23.2"
-  spec.add_dependency 'activesupport', '~> 4'
+  spec.add_runtime_dependency("parallel")
+  spec.add_runtime_dependency("thor")
+  spec.add_runtime_dependency("virtus")
+  spec.add_runtime_dependency("rugged")
+  spec.add_runtime_dependency('activesupport')
 
-  spec.add_development_dependency "bundler", "~> 1.10"
-  spec.add_development_dependency "rake", "~> 10.0"
-  spec.add_development_dependency "minitest"
+  spec.add_development_dependency("bundler")
+  spec.add_development_dependency("rake")
+  spec.add_development_dependency("minitest")
+  spec.add_development_dependency('pry')
+  spec.add_development_dependency('rubocop')
 end

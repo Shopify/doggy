@@ -1,0 +1,8 @@
+name: doggy
+
+up:
+  # - homebrew:
+  #   - cmake
+  - ruby:
+      version: 2.6.2
+  - bundler

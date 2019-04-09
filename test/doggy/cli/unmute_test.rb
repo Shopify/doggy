@@ -1,11 +1,13 @@
+# frozen_string_literal: true
+
 require_relative '../../test_helper'
 
 class Doggy::CLI::UnmuteTest < Minitest::Test
   def test_run
     mocked_run
-    mocked_run({ 'scope' => 'role:db' }, { scope: 'role:db' })
+    mocked_run({ 'scope' => 'role:db' }, scope: 'role:db')
     mocked_run({ 'all_scopes' => false }, {})
-    mocked_run({ 'all_scopes' => true }, { all_scopes: true })
+    mocked_run({ 'all_scopes' => true }, all_scopes: true)
   end
 
   private
