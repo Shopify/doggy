@@ -5,7 +5,6 @@ require 'json'
 
 require 'doggy'
 
-require 'minitest/pride'
 require 'minitest/autorun'
 require 'minitest/unit'
 require 'mocha/minitest'

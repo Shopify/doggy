@@ -106,7 +106,7 @@ class Doggy::ModelTest < Minitest::Test
 
   def test_create
     model = Doggy::Models::Dashboard.new('dash' => { 'title' => 'Pipeline', 'read_only' => true })
-    stub_request(:post, 'https://app.datadoghq.com/api/v1/dash/?api_key=api_key_123&application_key=app_key_345')
+    stub_request(:post, 'https://app.datadoghq.com/api/v1/dash?api_key=api_key_123&application_key=app_key_345')
       .with(body: "{\"description\":null,\"graphs\":[],\"id\":null,\"read_only\":true,\"template_variables\":[],\"title\":\"Pipeline 🐶\"}")
       .to_return(status: 201, body: "{\"id\":1}")
     File.expects(:open).with(Doggy.object_root.join('dash-1.json'), 'w')
@@ -115,7 +115,7 @@ class Doggy::ModelTest < Minitest::Test
 
   def test_create_when_api_error
     model = Doggy::Models::Dashboard.new('dash' => { 'title' => 'Pipeline', 'read_only' => true })
-    stub_request(:post, 'https://app.datadoghq.com/api/v1/dash/?api_key=api_key_123&application_key=app_key_345')
+    stub_request(:post, 'https://app.datadoghq.com/api/v1/dash?api_key=api_key_123&application_key=app_key_345')
       .with(body: "{\"description\":null,\"graphs\":[],\"id\":null,\"read_only\":true,\"template_variables\":[],\"title\":\"Pipeline 🐶\"}")
       .to_return(status: 400, body: "{}")
     File.expects(:open).with(Doggy.object_root.join('dash-1.json'), 'w').times(0)

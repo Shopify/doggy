@@ -21,7 +21,7 @@ class Doggy::CLI::PushTest < Minitest::Test
     resource = Doggy::Models::Dashboard.new(load_fixture('dashboard.json'))
     resource.id = nil
     Doggy::Model.expects(:changed_resources).returns([resource])
-    stub_request(:post, "https://app.datadoghq.com/api/v1/dash/?api_key=api_key_123&application_key=app_key_345")
+    stub_request(:post, "https://app.datadoghq.com/api/v1/dash?api_key=api_key_123&application_key=app_key_345")
       .with(body: JSON.dump(resource.to_h.merge(read_only: true, title: resource.title + " \xF0\x9F\x90\xB6")))
       .to_return(status: 200, body: JSON.dump(id: 1))
     File.expects(:open).with(Doggy.object_root.join('dash-1.json'), 'w')

@@ -13,7 +13,7 @@ Gem::Specification.new do |spec|
 
   spec.summary       = 'Syncs DataDog dashboards, alerts, screenboards, and monitors.'
   spec.description   = 'Syncs and manages DataDog dashboards, alerts, screenboards, and monitors.'
-  spec.homepage      = "http://github.com/bai/doggy"
+  spec.homepage      = "http://github.com/shopify/doggy"
   spec.license       = "MIT"
 
   spec.files         = %x(git ls-files -z).split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }

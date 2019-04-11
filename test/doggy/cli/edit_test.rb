@@ -32,7 +32,7 @@ class Doggy::CLI::EditTest < Minitest::Test
       end
 
       forked_resource_attributes = Doggy::Model.sort_by_key(forked_resource_attributes)
-      stub_request(:post, "https://app.datadoghq.com/api/v1/#{resource.prefix}/?api_key=api_key_123&application_key=app_key_345")
+      stub_request(:post, "https://app.datadoghq.com/api/v1/#{resource.prefix}?api_key=api_key_123&application_key=app_key_345")
         .with(body: JSON.dump(forked_resource_attributes))
         .to_return(status: 200, body: "{\"id\":#{forked_resource_id}}")
       if resource.is_a?(Doggy::Models::Dashboard)

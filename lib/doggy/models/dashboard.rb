@@ -27,7 +27,7 @@ module Doggy
       end
 
       def self.resource_url(id = nil)
-        "https://app.datadoghq.com/api/v1/dash/#{id}"
+        ["https://app.datadoghq.com/api/v1/dash", id].compact.join("/")
       end
 
       def managed?

@@ -1,8 +1,33 @@
 name: doggy
 
 up:
-  # - homebrew:
-  #   - cmake
+  - homebrew:
+    - cmake
   - ruby:
       version: 2.6.2
   - bundler
+commands:
+  console:
+    syntax: ""
+    desc:   'Start a console'
+    run:    bin/console
+    aliases: [c]
+  style:
+    desc: 'Run Rubocop checks'
+    run:  bundle exec rubocop --auto-correct --cache true --config .rubocop.yml
+  test:
+    syntax:
+      argument: file
+      optional: args...
+    desc:   'run tests related to changes'
+    aliases: [t]
+    run: |
+      if [[ $# -eq 0 ]]; then
+        bundle exec rake test
+      elif [[ $# -eq 1 && $1 =~ .*test\/* ]]; then
+        bundle exec rake test TEST="$@"
+      elif [[ "$2" == '-n' ]]; then
+        bundle exec rake test TEST="$1" TESTOPTS="--name='$3'"
+      else
+        echo "Nothing matched"
+      fi
