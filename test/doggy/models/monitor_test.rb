@@ -29,7 +29,7 @@ class Doggy::Models::DashboardTest < Minitest::Test
       .to_return(status: 200, body: JSON.dump(fixture.merge(options: fixture['options'].merge('silenced' => { '*' => nil }))))
     monitor.expects(:save_local)
     monitor.toggle_mute!('mute')
-    assert_equal(monitor.options.silenced, '*' => nil)
+    assert_equal(monitor.attributes["options"]["silenced"], '*' => nil)
   end
 
   def test_unmute
@@ -39,6 +39,6 @@ class Doggy::Models::DashboardTest < Minitest::Test
       .to_return(status: 200, body: JSON.dump(fixture.merge(options: fixture['options'].merge('silenced' => {}))))
     monitor.expects(:save_local)
     monitor.toggle_mute!('unmute')
-    assert_empty(monitor.options.silenced)
+    assert_empty(monitor.attributes["options"]["silenced"])
   end
 end

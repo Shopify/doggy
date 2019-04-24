@@ -1,30 +1,32 @@
-# encoding: utf-8
 # frozen_string_literal: true
 
 require "json"
 require "parallel"
 require "uri"
-require "virtus"
+require "active_support/core_ext/hash/keys"
 
 module Doggy
   class Model
-    include Virtus.model
+    # Denormalized object attributes.
+    attr_accessor :attributes
 
     # This stores the path on disk. We don't define it as a model attribute so
     # it doesn't get serialized.
     attr_accessor :path
 
-    # indicates whether an object locally deleted
+    # Indicates whether an object locally deleted
     attr_accessor :is_deleted
 
     # This stores whether the resource has been loaded locally or remotely.
     attr_accessor :loading_source
 
     class << self
-      attr_accessor :root
-
       def find(id)
-        attributes = request(:get, resource_url(id), nil, [404])
+        attributes = request(:get, resource_url(id), nil, [404, 400])
+        if self == Doggy::Models::Dashboard
+          attributes = request(:get, resource_url(id, "dash"), nil, [404, 400]) if attributes['errors']
+          attributes = request(:get, resource_url(id, "screen"), nil, [404, 400]) if attributes['errors']
+        end
         return if attributes['errors']
         resource = new(attributes)
 
@@ -34,11 +36,13 @@ module Doggy
 
       def find_local(param)
         resources = Doggy::Model.all_local_resources
-        if (id = param).is_a?(Integer) || (param =~ /^[0-9]+$/ && id = Integer(param))
-          return resources.find { |res| res.id == id }
+        param = param.to_s
+        if (param =~ /^[0-9]+$/) || (param =~ /^[a-z0-9]+-[a-z0-9]+-[a-z0-9]+$/)
+          id = param
+          return resources.find { |res| res.id == id.to_s || res.id == id.to_i }
         end
-        if id = param[%r{(dash/|screen/|monitors#)(\d+)}i, 2]
-          return resources.find { |res| res.id == Integer(id) }
+        if (id = param[%r{(dashboard/|monitors#)(\d+)}i, 2])
+          return resources.find { |res| res.id == id.to_s || res.id == id.to_i }
         end
         full_path = File.expand_path(param.gsub('objects/', ''), Doggy.object_root)
         resources.find { |res| res.path == full_path }
@@ -84,10 +88,7 @@ module Doggy
       end
 
       def infer_type(attributes)
-        has_key = ->(key) { attributes.key?(key.to_s) || attributes.key?(key.to_sym) }
-        return Models::Dashboard if has_key.call('graphs')
-        return Models::Monitor   if has_key.call('message')
-        return Models::Screen    if has_key.call('board_title')
+        attributes.key?("message") ? Models::Monitor : Models::Dashboard
       end
 
       def request(method, url, body = nil, accepted_errors = nil)
@@ -103,11 +104,11 @@ module Doggy
         http.use_ssl = (uri.scheme == 'https')
 
         request = case method
-                  when :get    then Net::HTTP::Get.new(uri.request_uri)
-                  when :post   then Net::HTTP::Post.new(uri.request_uri)
-                  when :put    then Net::HTTP::Put.new(uri.request_uri)
-                  when :delete then Net::HTTP::Delete.new(uri.request_uri)
-                  end
+        when :get    then Net::HTTP::Get.new(uri.request_uri)
+        when :post   then Net::HTTP::Post.new(uri.request_uri)
+        when :put    then Net::HTTP::Put.new(uri.request_uri)
+        when :delete then Net::HTTP::Delete.new(uri.request_uri)
+        end
 
         request.content_type = 'application/json'
         request.body = body if body
@@ -149,15 +150,8 @@ module Doggy
         }.to_json)
       end
 
-      def sort_by_key(hash, &block)
-        hash.keys.sort(&block).each_with_object({}) do |key, seed|
-          seed[key] = hash[key]
-          if seed[key].is_a?(Hash)
-            seed[key] = Doggy::Model.sort_by_key(seed[key], &block)
-          elsif seed[key].is_a?(Array)
-            seed[key].each_with_index { |e, i| seed[key][i] = sort_by_key(e, &block) if e.is_a?(Hash) }
-          end
-        end
+      def sort_by_key(hash)
+        hash
       end
 
       protected
@@ -167,18 +161,15 @@ module Doggy
       end
     end # class << self
 
-    def ==(another_model)
-      to_h == another_model.to_h
+    def ==(other)
+      to_h == other.to_h
     end
 
-    def initialize(attributes = nil)
-      root_key = self.class.root
+    def initialize(attributes = {})
+      @attributes = attributes.deep_stringify_keys
 
-      return super unless attributes && root_key
-      return super unless attributes[root_key].is_a?(Hash)
-
-      attributes = attributes[root_key]
-      super(attributes)
+      @attributes["id"] = @attributes["id"].to_s if @attributes["id"]
+      @attributes["options"] ||= {} if self.class == Doggy::Models::Monitor
     end
 
     def save_local
@@ -188,7 +179,7 @@ module Doggy
     end
 
     def to_h
-      Doggy::Model.sort_by_key(super)
+      Doggy::Model.sort_by_key(attributes)
     end
 
     def validate
@@ -212,7 +203,7 @@ module Doggy
     end
 
     def destroy
-      self.class.request(:delete, resource_url(id), nil, [404])
+      self.class.request(:delete, resource_url(id), nil, [404, 400])
     end
 
     def destroy_local

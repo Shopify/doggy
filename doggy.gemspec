@@ -1,13 +1,8 @@
-# coding: utf-8
 # frozen_string_literal: true
-
-lib = File.expand_path('../lib', __FILE__)
-$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'doggy/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "doggy"
-  spec.version       = Doggy::VERSION
+  spec.version       = "3.0.0-beta1"
   spec.authors       = ["Vlad Gorodetsky", "Andre Medeiros"]
   spec.email         = ["v@gor.io", "me@andremedeiros.info"]
 
@@ -25,13 +20,12 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency("parallel")
   spec.add_runtime_dependency("thor")
-  spec.add_runtime_dependency("virtus")
   spec.add_runtime_dependency("rugged")
-  spec.add_runtime_dependency('activesupport')
+  spec.add_runtime_dependency("activesupport")
 
   spec.add_development_dependency("bundler")
   spec.add_development_dependency("rake")
   spec.add_development_dependency("minitest")
-  spec.add_development_dependency('pry')
-  spec.add_development_dependency('rubocop')
+  spec.add_development_dependency("pry")
+  spec.add_development_dependency("rubocop")
 end

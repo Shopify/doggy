@@ -5,12 +5,6 @@ require 'tmpdir'
 
 class Doggy::ModelTest < Minitest::Test
   class DummyModel < Doggy::Model
-    attribute :id,    Integer
-    attribute :title, String
-  end
-
-  class DummyModelWithRoot < DummyModel
-    self.root = 'dash'
   end
 
   def setup
@@ -26,12 +20,8 @@ class Doggy::ModelTest < Minitest::Test
 
       git_create(repo, 'Gemfile', "source 'https://rubygems.org'\n\ngemspec")
 
-      screen_json = load_fixture('screen.json')
-      screen = Doggy::Models::Screen.new(screen_json)
-      git_create(repo, "objects/screen-#{screen.id}.json", JSON.dump(screen_json))
-
       dashboard_to_delete = Doggy::Models::Dashboard.new(id: '666')
-      git_create(repo, "objects/dash-#{dashboard_to_delete.id}.json", JSON.dump(dashboard_to_delete.to_h))
+      git_create(repo, "objects/dashboard-#{dashboard_to_delete.id}.json", JSON.dump(dashboard_to_delete.to_h))
 
       monitor_json = load_fixture('monitor.json')
       monitor = Doggy::Models::Monitor.new(monitor_json)
@@ -46,33 +36,31 @@ class Doggy::ModelTest < Minitest::Test
       # create a new dashboard
       dashboard_json = load_fixture('dashboard.json')
       dashboard = Doggy::Models::Dashboard.new(dashboard_json)
-      git_create(repo, "objects/dash-#{dashboard.id}.json", JSON.dump(dashboard_json['dash']))
+      git_create(repo, "objects/dashboard-#{dashboard.id}.json", JSON.dump(dashboard_json))
 
       # modify the existing monitor
       monitor.name = 'An updated monitor name'
       git_create(repo, "objects/monitor-#{monitor.id}.json", JSON.dump(monitor.to_h))
 
-      # rename the screen
-      oid = repo.write(JSON.dump(screen_json), :blob)
-      repo.index.remove("objects/screen-#{screen.id}.json")
-      repo.index.add(path: "objects/new-folder/screen-#{screen.id}.json", oid: oid, mode: 0100644)
-      git_commit(repo)
+      # rename the dashboard
+      # oid = repo.write(JSON.dump(dashboard_json), :blob)
+      # repo.index.remove("objects/dashboard-#{dashboard.id}.json")
+      # repo.index.add(path: "objects/new-folder/dashboard-#{dashboard.id}.json", oid: oid, mode: 0100644)
+      # git_commit(repo)
 
       # delete the dashboard
-      repo.index.remove("objects/dash-#{dashboard_to_delete.id}.json")
+      repo.index.remove("objects/dashboard-#{dashboard_to_delete.id}.json")
       git_commit(repo)
 
       # build expected objects and assert that the method returns them
-      [dashboard, monitor, screen, dashboard_to_delete].each do |resource|
+      [dashboard, monitor, dashboard_to_delete].each do |resource|
         resource.is_deleted = false
         resource.path = Doggy.object_root.parent.join("objects/#{resource.prefix}-#{resource.id}.json").to_s
         resource.loading_source = :local
       end
-      screen.path = Doggy.object_root.parent.join("objects/new-folder/screen-#{screen.id}").to_s
       dashboard_to_delete.is_deleted = true
 
-      assert_equal([dashboard, monitor, screen, dashboard_to_delete].sort_by(&:id),\
-        Doggy::Model.changed_resources.sort_by(&:id))
+      assert_equal([dashboard, dashboard_to_delete, monitor], Doggy::Model.changed_resources)
     ensure
       FileUtils.remove_entry(repo_root)
     end
@@ -82,43 +70,49 @@ class Doggy::ModelTest < Minitest::Test
     dashboard = Doggy::Models::Dashboard.new(load_fixture('dashboard.json'))
     monitor = Doggy::Models::Monitor.new(load_fixture('monitor.json'))
     monitor.path = File.join(Doggy.object_root, 'some-folder/monitor-22.json')
-    screen = Doggy::Models::Screen.new(load_fixture('screen.json'))
-    Doggy::Model.expects(:all_local_resources).times(6).returns([dashboard, monitor, screen])
+
+    Doggy::Model.expects(:all_local_resources).at_least_once.returns([dashboard, monitor])
+
     assert_equal(dashboard, Doggy::Model.find_local(2473))
     assert_equal(dashboard, Doggy::Model.find_local('2473'))
-    assert_equal(dashboard, Doggy::Model.find_local('https://app.datadoghq.com/dash/2473'))
-    assert_equal(monitor, Doggy::Model.find_local('https://app.datadoghq.com/monitors#22/edit'))
     assert_equal(monitor, Doggy::Model.find_local('objects/some-folder/monitor-22.json'))
-    assert_equal(screen, Doggy::Model.find_local('https://app.datadoghq.com/screen/10/bbbb'))
+    assert_equal(dashboard, Doggy::Model.find_local('https://app.datadoghq.com/dashboard/2473'))
+    assert_equal(monitor, Doggy::Model.find_local('https://app.datadoghq.com/monitors#22/edit'))
   end
 
   def test_save_local_ensures_read_only
     monitor = Doggy::Models::Monitor.new(id: 1, title: 'Some test', name: 'Monitor name', options: { locked: false })
     monitor.path = Tempfile.new('monitor-1.json').path
     monitor.save_local
-    assert(monitor.options.locked)
+    assert(monitor.attributes["options"]["locked"])
 
-    dashboard = Doggy::Models::Dashboard.new('dash' => { 'title' => 'Pipeline', 'read_only' => false })
-    dashboard.path = Tempfile.new('dash-1.json').path
+    dashboard = Doggy::Models::Dashboard.new('title' => 'Pipeline', 'read_only' => false)
+    dashboard.path = Tempfile.new('dashboard-1.json').path
     dashboard.save_local
     assert(dashboard.read_only)
   end
 
   def test_create
-    model = Doggy::Models::Dashboard.new('dash' => { 'title' => 'Pipeline', 'read_only' => true })
-    stub_request(:post, 'https://app.datadoghq.com/api/v1/dash?api_key=api_key_123&application_key=app_key_345')
-      .with(body: "{\"description\":null,\"graphs\":[],\"id\":null,\"read_only\":true,\"template_variables\":[],\"title\":\"Pipeline 🐶\"}")
+    model = Doggy::Models::Dashboard.new('title' => 'Pipeline', 'read_only' => true, 'widgets' => [])
+
+    stub_request(:post, 'https://app.datadoghq.com/api/v1/dashboard?api_key=api_key_123&application_key=app_key_345')
+      .with(body: "{\"title\":\"Pipeline 🐶\",\"read_only\":true,\"widgets\":[]}")
       .to_return(status: 201, body: "{\"id\":1}")
-    File.expects(:open).with(Doggy.object_root.join('dash-1.json'), 'w')
+
+    File.expects(:open).with(Doggy.object_root.join('dashboard-1.json'), 'w')
+
     model.save
   end
 
   def test_create_when_api_error
-    model = Doggy::Models::Dashboard.new('dash' => { 'title' => 'Pipeline', 'read_only' => true })
-    stub_request(:post, 'https://app.datadoghq.com/api/v1/dash?api_key=api_key_123&application_key=app_key_345')
-      .with(body: "{\"description\":null,\"graphs\":[],\"id\":null,\"read_only\":true,\"template_variables\":[],\"title\":\"Pipeline 🐶\"}")
-      .to_return(status: 400, body: "{}")
-    File.expects(:open).with(Doggy.object_root.join('dash-1.json'), 'w').times(0)
+    model = Doggy::Models::Dashboard.new('title' => 'Pipeline', 'read_only' => true, 'widgets' => [])
+
+    stub_request(:post, 'https://app.datadoghq.com/api/v1/dashboard?api_key=api_key_123&application_key=app_key_345')
+      .with(body: "{\"title\":\"Pipeline 🐶\",\"read_only\":true,\"widgets\":[]}")
+      .to_return(status: 500, body: "{}")
+
+    File.expects(:open).with(Doggy.object_root.join('dashboard-1.json'), 'w').times(0)
+
     assert_raises Doggy::DoggyError do
       model.save
     end
@@ -127,14 +121,13 @@ class Doggy::ModelTest < Minitest::Test
   def test_update
     model = Doggy::Models::Monitor.new(id: 1, title: 'Some test', name: 'Monitor name')
     stub_request(:put, "https://app.datadoghq.com/api/v1/monitor/1?api_key=api_key_123&application_key=app_key_345")
-      .with(body: "{\"id\":1,\"message\":null,\"multi\":null,\"name\":\"Monitor name 🐶\",\"options\":{},"\
-           "\"org_id\":null,\"query\":null,\"tags\":[],\"type\":null}")
+      .with(body: "{\"id\":\"1\",\"title\":\"Some test\",\"name\":\"Monitor name 🐶\",\"options\":{}}")
       .to_return(status: 200)
     model.save
   end
 
   def test_find_missing
-    stub_test_find(400)
+    stub_test_find(499)
     assert_raises Doggy::DoggyError do
       Doggy::Models::Monitor.find(1)
     end
@@ -145,41 +138,23 @@ class Doggy::ModelTest < Minitest::Test
     Doggy::Models::Monitor.find(1)
   end
 
-  def test_sort_by_key
-    h = { b: [{ d: 1, a: 2 }, { x: 1, p: 3, y: 5 }], a: 3 }
-    expected = { a: 3, b: [{ a: 2, d: 1 }, { p: 3, x: 1, y: 5 }] }
-    assert_equal(Doggy::Model.sort_by_key(h).to_s, expected.to_s)
-  end
-
   def test_mass_assignment
-    instance = DummyModel.new(id: 1, title: 'Some test')
+    instance = DummyModel.new(id: "1", title: 'Some test')
 
-    assert_equal(1,           instance.id)
-    assert_equal('Some test', instance.title)
+    assert_equal("1",         instance.attributes["id"])
+    assert_equal('Some test', instance.attributes["title"])
   end
 
   def test_value_coallescion
-    instance = DummyModel.new(id: '2', title: :a_symbol)
+    instance = DummyModel.new(id: '2', title: "a_symbol")
 
-    assert_equal(2,          instance.id)
-    assert_equal('a_symbol', instance.title)
-  end
-
-  def test_root
-    first_instance  = DummyModelWithRoot.new('dash' => { 'id' => 1, 'title' => 'Pipeline' })
-    second_instance = DummyModelWithRoot.new(id: 2, title: 'RPMs')
-
-    assert_equal(1,          first_instance.id)
-    assert_equal('Pipeline', first_instance.title)
-
-    assert_equal(2,      second_instance.id)
-    assert_equal('RPMs', second_instance.title)
+    assert_equal("2",        instance.attributes["id"])
+    assert_equal('a_symbol', instance.attributes["title"])
   end
 
   def test_type_inferrence
-    assert_equal(Doggy::Models::Dashboard, Doggy::Model.infer_type('graphs'      => []))
-    assert_equal(Doggy::Models::Monitor,   Doggy::Model.infer_type('message'     => ''))
-    assert_equal(Doggy::Models::Screen,    Doggy::Model.infer_type('board_title' => ''))
+    assert_equal(Doggy::Models::Dashboard, Doggy::Model.infer_type('widgets' => []))
+    assert_equal(Doggy::Models::Monitor,   Doggy::Model.infer_type('message' => ''))
   end
 
   private

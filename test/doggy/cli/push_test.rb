@@ -11,8 +11,8 @@ class Doggy::CLI::PushTest < Minitest::Test
   def test_sync_changes_save
     resource = Doggy::Models::Dashboard.new(load_fixture('dashboard.json'))
     Doggy::Model.expects(:changed_resources).returns([resource])
-    stub_request(:put, "https://app.datadoghq.com/api/v1/dash/#{resource.id}?api_key=api_key_123&application_key=app_key_345")
-      .with(body: JSON.dump(resource.to_h.merge(read_only: true, title: resource.title + " \xF0\x9F\x90\xB6")))
+    stub_request(:put, "https://app.datadoghq.com/api/v1/dashboard/#{resource.id}?api_key=api_key_123&application_key=app_key_345")
+      .with(body: JSON.dump(resource.to_h.merge("is_read_only" => true, "title" => "#{resource.title} 🐶")))
       .to_return(status: 200)
     Doggy::CLI::Push.new.sync_changes
   end
@@ -21,10 +21,10 @@ class Doggy::CLI::PushTest < Minitest::Test
     resource = Doggy::Models::Dashboard.new(load_fixture('dashboard.json'))
     resource.id = nil
     Doggy::Model.expects(:changed_resources).returns([resource])
-    stub_request(:post, "https://app.datadoghq.com/api/v1/dash?api_key=api_key_123&application_key=app_key_345")
-      .with(body: JSON.dump(resource.to_h.merge(read_only: true, title: resource.title + " \xF0\x9F\x90\xB6")))
+    stub_request(:post, "https://app.datadoghq.com/api/v1/dashboard?api_key=api_key_123&application_key=app_key_345")
+      .with(body: JSON.dump(resource.to_h.merge("is_read_only" => true, "title" => "#{resource.title} 🐶")))
       .to_return(status: 200, body: JSON.dump(id: 1))
-    File.expects(:open).with(Doggy.object_root.join('dash-1.json'), 'w')
+    File.expects(:open).with(Doggy.object_root.join('dashboard-1.json'), 'w')
     Doggy::CLI::Push.new.sync_changes
   end
 
@@ -57,7 +57,7 @@ class Doggy::CLI::PushTest < Minitest::Test
   private
 
   def prepare_for_push
-    resources = [Doggy::Models::Screen.new(load_fixture('screen.json')), Doggy::Models::Monitor.new(load_fixture('monitor.json'))]
+    resources = [Doggy::Models::Dashboard.new(load_fixture('dashboard.json')), Doggy::Models::Monitor.new(load_fixture('monitor.json'))]
     resources.each do |resource|
       resource.expects(:ensure_read_only!)
       resource.expects(:save)

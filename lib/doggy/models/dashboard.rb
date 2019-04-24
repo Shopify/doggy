@@ -1,21 +1,50 @@
-# encoding: utf-8
 # frozen_string_literal: true
 
 module Doggy
   module Models
     class Dashboard < Doggy::Model
-      self.root = 'dash'
+      def id
+        attributes["id"]
+      end
 
-      attribute :id,          Integer
-      attribute :title,       String
-      attribute :description, String
+      def id=(v)
+        attributes["id"] = v
+      end
 
-      attribute :graphs,             Array[Hash]
-      attribute :template_variables, Array[Hash]
-      attribute :read_only,          Boolean
+      def title
+        attributes["title"]
+      end
+
+      def title=(v)
+        attributes["title"] = v
+      end
+
+      def description
+        attributes["description"]
+      end
+
+      def description=(v)
+        attributes["description"] = v
+      end
+
+      def read_only
+        if attributes["widgets"]
+          attributes["is_read_only"]
+        else
+          attributes["read_only"]
+        end
+      end
+
+      def read_only=(v)
+        if attributes["widgets"]
+          attributes["is_read_only"] = v
+        else
+          attributes["read_only"] = v
+        end
+      end
 
       def prefix
-        'dash'
+        'dashboard'
       end
 
       def ensure_read_only!
@@ -26,22 +55,22 @@ module Doggy
         self.read_only = false
       end
 
-      def self.resource_url(id = nil)
-        ["https://app.datadoghq.com/api/v1/dash", id].compact.join("/")
+      def self.resource_url(id = nil, kind = "dashboard")
+        ["https://app.datadoghq.com/api/v1/#{kind}", id].compact.join("/")
       end
 
       def managed?
-        !(title =~ Doggy::DOG_SKIP_REGEX)
+        title !~ Doggy::DOG_SKIP_REGEX
       end
 
       def ensure_managed_emoji!
         return unless managed?
-        return if title =~ /\xF0\x9F\x90\xB6/
-        self.title += " \xF0\x9F\x90\xB6"
+        return if title =~ /🐶/
+        self.title = "#{title} 🐶"
       end
 
       def human_url
-        "https://#{Doggy.base_human_url}/dash/#{id}"
+        "https://#{Doggy.base_human_url}/dashboard/#{id}"
       end
 
       # Dashboards don't have a direct edit URL

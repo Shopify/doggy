@@ -23,7 +23,7 @@ module Duration
   }
 
   def self.parse(value)
-    unless match = DURATION_FORMAT.match(value)
+    unless (match = DURATION_FORMAT.match(value))
       raise ArgumentError, "not a duration: #{value.inspect}, "\
       "use digits followed by a unit (#{DURATION_UNITS.map { |k, v| "#{k} for #{v}" }.join(', ')})"
     end

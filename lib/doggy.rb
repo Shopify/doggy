@@ -1,10 +1,10 @@
-# encoding: utf-8
 # frozen_string_literal: true
 
 require "pathname"
 require "net/http"
 require "rugged"
 
+require "doggy/hash_sort"
 require "doggy/cli"
 require "doggy/cli/edit"
 require "doggy/cli/mute"
@@ -15,12 +15,10 @@ require "doggy/cli/delete"
 require "doggy/model"
 require "doggy/models/dashboard"
 require "doggy/models/monitor"
-require "doggy/models/screen"
-require "doggy/version"
 
 module Doggy
-  DOG_SKIP_REGEX         = /\xF0\x9F\x98\xB1|:scream:/i.freeze
-  MANAGED_BY_DOGGY_REGEX = /\xF0\x9F\x90\xB6|:dog:/i.freeze
+  DOG_SKIP_REGEX         = /😱|:scream:/i.freeze
+  MANAGED_BY_DOGGY_REGEX = /🐶|:dog:/i.freeze
 
   class DoggyError < StandardError; end
 
