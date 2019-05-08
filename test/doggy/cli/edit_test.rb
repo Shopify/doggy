@@ -22,11 +22,11 @@ class Doggy::CLI::EditTest < Minitest::Test
 
       forked_resource_id = "2"
       Doggy.expects(:random_word).returns('randomword')
-      forked_resource_attributes = resource.to_h.dup.merge("id" => nil)
+      forked_resource_attributes = resource.to_h.dup.except("id")
 
       if resource.is_a?(Doggy::Models::Dashboard)
         forked_resource_attributes["title"] = "[randomword] #{resource.title} 🐶"
-        forked_resource_attributes["read_only"] = false
+        forked_resource_attributes["is_read_only"] = false
       elsif resource.is_a?(Doggy::Models::Monitor)
         forked_resource_attributes["name"] = "[randomword] Cache expiry 🐶"
         forked_resource_attributes["options"]["locked"] = false
@@ -37,7 +37,7 @@ class Doggy::CLI::EditTest < Minitest::Test
         .with(body: JSON.dump(forked_resource_attributes))
         .to_return(status: 200, body: "{\"id\":#{forked_resource_id}}")
       if resource.is_a?(Doggy::Models::Dashboard)
-        JSON.expects(:pretty_generate).with(forked_resource_attributes.merge("id" => forked_resource_id, "read_only" => true))
+        JSON.expects(:pretty_generate).with(forked_resource_attributes.merge("id" => forked_resource_id, "is_read_only" => true))
       elsif resource.is_a?(Doggy::Models::Monitor)
         JSON.expects(:pretty_generate).with(forked_resource_attributes.merge("id" => forked_resource_id, "options" => forked_resource_attributes["options"].merge("locked" => true)))
       end
