@@ -68,7 +68,7 @@ module Doggy
         repo = Rugged::Repository.new(Doggy.object_root.parent.to_s)
         diff = repo.diff(current_sha, 'HEAD')
         diff.find_similar!
-        diff.each_delta.map do |delta|
+        all = diff.each_delta.map do |delta|
           new_file_path = delta.new_file[:path]
           next unless new_file_path =~ %r{\Aobjects/}
           is_deleted = delta.status == :deleted
@@ -85,6 +85,15 @@ module Doggy
           resource.is_deleted = is_deleted
           resource
         end.compact
+        # Check for monitors which were modified and renamed in one commit
+        deletes = all.select{ |r| r.is_deleted }
+        others = all.select{ |r| !r.is_deleted }.map{ |r| r.id }
+        deletes.map do |deleted|
+          if others.include? deleted.id
+            all.delete(deleted)
+          end
+        end
+        all
       end
 
       def infer_type(attributes)

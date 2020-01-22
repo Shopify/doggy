@@ -71,6 +71,7 @@ class Doggy::ModelTest < Minitest::Test
     Doggy.expects(:object_root).at_least_once.returns(Pathname.new('objects').expand_path(repo_root))
     begin
       repo = Rugged::Repository.init_at(repo_root)
+      new_title = "A more informative description"
 
       # create a new dashboard
       dashboard_json = load_fixture('dashboard.json')
@@ -79,7 +80,7 @@ class Doggy::ModelTest < Minitest::Test
       Doggy::Model.expects(:current_sha).returns(last_deployed_commit_sha)
 
       # rename the dashboard and alter it
-      dashboard_json["description"] = "A more informative description"
+      dashboard_json["description"] = new_title
       oid = repo.write(JSON.dump(dashboard_json), :blob)
       repo.index.remove("objects/dashboard-#{dashboard.id}.json")
       repo.index.add(path: "objects/new-folder/dashboard-#{dashboard.id}.json", oid: oid, mode: 0100644)
@@ -88,7 +89,8 @@ class Doggy::ModelTest < Minitest::Test
       # build expected objects and assert that the method returns them
       [dashboard].each do |resource|
         resource.is_deleted = false
-        resource.path = Doggy.object_root.parent.join("objects/#{resource.prefix}-#{resource.id}.json").to_s
+        resource.description = new_title
+        resource.path = Doggy.object_root.parent.join("objects/new-folder/#{resource.prefix}-#{resource.id}.json").to_s
         resource.loading_source = :local
       end
 
