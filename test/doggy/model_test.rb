@@ -66,6 +66,38 @@ class Doggy::ModelTest < Minitest::Test
     end
   end
 
+  def test_changed_resources_rename_and_modify_same_commit
+    repo_root = Dir.mktmpdir
+    Doggy.expects(:object_root).at_least_once.returns(Pathname.new('objects').expand_path(repo_root))
+    begin
+      repo = Rugged::Repository.init_at(repo_root)
+
+      # create a new dashboard
+      dashboard_json = load_fixture('dashboard.json')
+      dashboard = Doggy::Models::Dashboard.new(dashboard_json)
+      last_deployed_commit_sha = git_create(repo, "objects/dashboard-#{dashboard.id}.json", JSON.dump(dashboard_json))
+      Doggy::Model.expects(:current_sha).returns(last_deployed_commit_sha)
+
+      # rename the dashboard and alter it
+      dashboard_json["description"] = "A more informative description"
+      oid = repo.write(JSON.dump(dashboard_json), :blob)
+      repo.index.remove("objects/dashboard-#{dashboard.id}.json")
+      repo.index.add(path: "objects/new-folder/dashboard-#{dashboard.id}.json", oid: oid, mode: 0100644)
+      git_commit(repo)
+
+      # build expected objects and assert that the method returns them
+      [dashboard].each do |resource|
+        resource.is_deleted = false
+        resource.path = Doggy.object_root.parent.join("objects/#{resource.prefix}-#{resource.id}.json").to_s
+        resource.loading_source = :local
+      end
+
+      assert_equal([dashboard], Doggy::Model.changed_resources)
+    ensure
+      FileUtils.remove_entry(repo_root)
+    end
+  end
+
   def test_find_local
     dashboard = Doggy::Models::Dashboard.new(load_fixture('dashboard.json'))
     monitor = Doggy::Models::Monitor.new(load_fixture('monitor.json'))
